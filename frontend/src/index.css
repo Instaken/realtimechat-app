@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@theme {
+  --color-chat-dark: #464655;
+  --color-chat-grey: #94958b;
+  --color-chat-light: #b7b6c1;
+}
+
+@layer base {
+  body {
+    @apply bg-chat-dark text-chat-light;
+  }
+}
