@@ -1,35 +1,63 @@
 import React from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
-import { LogOut, MessageSquare } from 'lucide-react';
+import { LogOut, MessageSquare, Moon, Sun } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import Avatar from 'boring-avatars';
 
 const Layout = () => {
     const navigate = useNavigate();
-    // Mock logout - in real app cleans state
+    const { theme, toggleTheme } = useTheme();
+    const currentUser = JSON.parse(localStorage.getItem('chat_user') || '{}');
+
     const handleLogout = () => {
         localStorage.removeItem('chat_user');
         navigate('/login');
     };
 
     return (
-        <div className="flex flex-col h-screen bg-chat-dark text-chat-light antialiased font-sans">
+        <div className="flex flex-col h-screen bg-gray-50 dark:bg-chat-dark text-gray-900 dark:text-chat-light antialiased font-sans">
             {/* Top Navigation Bar */}
-            <header className="flex items-center justify-between px-6 py-3 bg-chat-dark border-b border-chat-grey/30 shadow-md z-10">
+            <header className="flex items-center justify-between px-6 py-3 bg-white dark:bg-chat-dark border-b border-gray-200 dark:border-chat-grey/30 shadow-md z-10">
                 <div className="flex items-center gap-3">
-                    <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                        <div className="p-2 bg-chat-grey/20 rounded-lg">
-                            <MessageSquare size={24} className="text-white" />
+                    <Link to="/app" className="flex items-center gap-2 hover:opacity-80 transition-colors">
+                        <div className="p-2 bg-gray-100 dark:bg-chat-grey/20 rounded-lg">
+                            <MessageSquare size={24} className="text-gray-900 dark:text-white" />
                         </div>
-                        <h1 className="text-xl font-bold tracking-tight text-white">DevChat</h1>
+                        <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">ChatZUO</h1>
                     </Link>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
+                    {/* Profile Link */}
+                    <Link
+                        to="/app/profile"
+                        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 dark:text-chat-light hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-chat-grey/20 rounded-md transition-colors"
+                    >
+                        <Avatar
+                            size={24}
+                            name={currentUser.username || 'User'}
+                            variant="beam"
+                            colors={['#92A1C6', '#146A7C', '#F0AB3D', '#C271B4', '#C20D90']}
+                        />
+                        <span className="hidden sm:inline">{currentUser.username}</span>
+                    </Link>
+
+                    {/* Theme Toggle */}
+                    <button
+                        onClick={toggleTheme}
+                        className="p-2 text-gray-600 dark:text-chat-light hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-chat-grey/20 rounded-md transition-colors"
+                        title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                    >
+                        {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+                    </button>
+
+                    {/* Logout */}
                     <button
                         onClick={handleLogout}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-chat-light hover:text-white hover:bg-chat-grey/20 rounded-md transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 dark:text-chat-light hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-chat-grey/20 rounded-md transition-colors"
                     >
                         <LogOut size={18} />
-                        <span>Logout</span>
+                        <span className="hidden sm:inline">Logout</span>
                     </button>
                 </div>
             </header>

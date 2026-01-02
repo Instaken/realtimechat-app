@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@config "../tailwind.config.js";
+
 @theme {
   --color-chat-dark: #464655;
   --color-chat-grey: #94958b;
@@ -8,6 +10,14 @@
 
 @layer base {
   body {
-    @apply bg-chat-dark text-chat-light;
+    @apply font-sans antialiased transition-colors duration-300 bg-gray-50 text-gray-900;
+  }
+
+  /* Force base colors if tailwind classes are not picking it up */
+  html.dark body,
+  html.dark .min-h-screen,
+  html.dark .flex-col.h-screen {
+    background-color: #464655 !important;
+    color: #b7b6c1 !important;
   }
 }
