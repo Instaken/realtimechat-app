@@ -1,13 +1,14 @@
 import Avatar from 'boring-avatars';
 import { Users, Calendar, Info } from 'lucide-react';
 
-const ChatSidebar = ({ room, currentUser }) => {
+const ChatSidebar = ({ room, currentUser, onlineUsers = [] }) => {
     const isOwner = room?.ownerId === currentUser?.id;
     const ui = room?.uiSettings || {};
     const primaryColor = ui.primaryColor || '#6366f1';
     const sidebarColor = ui.bgType === 'color' ? ui.bgValue : '#2d3748';
 
-    const onlineCount = currentUser ? 1 : 0;
+    // onlineUsers is an array of UserPresence objects from backend
+    const onlineCount = onlineUsers.length || (currentUser ? 1 : 0);
 
     return (
         <div
@@ -72,21 +73,41 @@ const ChatSidebar = ({ room, currentUser }) => {
                     Online — {onlineCount}
                 </h4>
                 <ul className="space-y-2">
-                    {currentUser && (
-                        <li className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg transition-colors cursor-pointer group border border-transparent hover:border-white/5">
-                            <div className="relative">
-                                <Avatar
-                                    size={32}
-                                    name={currentUser.username}
-                                    variant="beam"
-                                    colors={['#92A1C6', '#146A7C', '#F0AB3D', '#C271B4', '#C20D90']}
-                                />
-                                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-[#1f2937] rounded-full"></span>
-                            </div>
-                            <span className="text-chat-light group-hover:text-white text-sm font-medium truncate">
-                                {currentUser.username} (You)
-                            </span>
-                        </li>
+                    {/* Render online users from socket */}
+                    {onlineUsers.length > 0 ? (
+                        onlineUsers.map((user) => (
+                            <li key={user.socketId || user.userId} className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg transition-colors cursor-pointer group border border-transparent hover:border-white/5">
+                                <div className="relative">
+                                    <Avatar
+                                        size={32}
+                                        name={user.username}
+                                        variant="beam"
+                                        colors={['#92A1C6', '#146A7C', '#F0AB3D', '#C271B4', '#C20D90']}
+                                    />
+                                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-[#1f2937] rounded-full"></span>
+                                </div>
+                                <span className="text-chat-light group-hover:text-white text-sm font-medium truncate">
+                                    {user.username} {user.userId === currentUser?.id ? '(You)' : ''}
+                                </span>
+                            </li>
+                        ))
+                    ) : (
+                        currentUser && (
+                            <li className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg transition-colors cursor-pointer group border border-transparent hover:border-white/5">
+                                <div className="relative">
+                                    <Avatar
+                                        size={32}
+                                        name={currentUser.username}
+                                        variant="beam"
+                                        colors={['#92A1C6', '#146A7C', '#F0AB3D', '#C271B4', '#C20D90']}
+                                    />
+                                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-[#1f2937] rounded-full"></span>
+                                </div>
+                                <span className="text-chat-light group-hover:text-white text-sm font-medium truncate">
+                                    {currentUser.username} (You)
+                                </span>
+                            </li>
+                        )
                     )}
                 </ul>
             </div>

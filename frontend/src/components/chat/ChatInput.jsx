@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Send, Image as ImageIcon, FileImage } from 'lucide-react';
 
-const ChatInput = ({ onSendMessage, roomSlug, uiSettings }) => {
+const ChatInput = ({ onSendMessage, onTyping, roomSlug, uiSettings }) => {
     const [message, setMessage] = useState('');
     const [showGifInput, setShowGifInput] = useState(false);
     const [gifUrl, setGifUrl] = useState('');
@@ -11,6 +11,11 @@ const ChatInput = ({ onSendMessage, roomSlug, uiSettings }) => {
 
     const font = uiSettings?.fontSettings || { family: 'Inter' };
     const fontFamily = font.family ? `'${font.family}', sans-serif` : 'inherit';
+
+    const handleMessageChange = (e) => {
+        setMessage(e.target.value);
+        if (onTyping) onTyping();
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -112,7 +117,7 @@ const ChatInput = ({ onSendMessage, roomSlug, uiSettings }) => {
                         <input
                             type="text"
                             value={message}
-                            onChange={(e) => setMessage(e.target.value)}
+                            onChange={handleMessageChange}
                             placeholder={`Message #${roomSlug || 'room'}...`}
                             className="w-full bg-transparent border-none focus:ring-0 text-white placeholder-chat-grey/70 py-2.5 max-h-32 focus:outline-none"
                             style={{ fontFamily }}

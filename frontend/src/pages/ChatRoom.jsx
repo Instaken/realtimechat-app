@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Hash, Users, X } from 'lucide-react';
 import { roomService } from '../services/api';
@@ -6,23 +6,25 @@ import ChatSidebar from '../components/chat/ChatSidebar';
 import MessageList from '../components/chat/MessageList';
 import ChatInput from '../components/chat/ChatInput';
 import { PageLoader } from '../components/common/Loading';
-import { socketService } from '../services/socket';
+import { useSocket } from '../context/SocketContext';
 
 /**
  * Chat Room Page
  * Main chat interface with messages, input, and sidebar
  */
 const ChatRoom = () => {
-    const { roomId } = useParams(); // This could be an ID or a Slug
+    const { roomId } = useParams(); // This is the ID or Slug
     const navigate = useNavigate();
+    const { socket, joinRoom, sendMessage, startTyping, stopTyping, typingUsers, onlineUsers } = useSocket();
 
     const [currentUser, setCurrentUser] = useState(null);
     const [room, setRoom] = useState(null);
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showSidebar, setShowSidebar] = useState(true);
+    const typingTimeoutRef = useRef(null);
 
-    // Initialize socket and load data
+    // Initial Load
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem('chat_user') || '{}');
         const token = localStorage.getItem('chat_token');
@@ -34,64 +36,91 @@ const ChatRoom = () => {
 
         setCurrentUser(user);
         loadRoomData();
-
-        // Socket logic
-        socketService.connect(token);
-        socketService.joinRoom(roomId);
-
-        socketService.onMessage((newMsg) => {
-            if (newMsg.room === roomId) {
-                setMessages(prev => [...prev, newMsg]);
-            }
-        });
-
-        return () => {
-            // Optional: socketService.disconnect();
-        };
     }, [roomId, navigate]);
+
+    // Socket Setup
+    useEffect(() => {
+        if (room?.id) {
+            joinRoom(room.id);
+
+            if (socket) {
+                const handleNewMessage = (newMsg) => {
+                    // Check if message belongs to this room
+                    if (newMsg.roomId === room.id || newMsg.room === room.id) {
+                        setMessages(prev => {
+                            // Avoid duplicates if we already added it via ack
+                            if (prev.find(m => m.id === newMsg.id)) return prev;
+                            return [...prev, newMsg];
+                        });
+                    }
+                };
+
+                socket.on('receive_message', handleNewMessage);
+                return () => {
+                    socket.off('receive_message', handleNewMessage);
+                };
+            }
+        }
+    }, [room?.id, socket, joinRoom]);
 
     const loadRoomData = async () => {
         try {
             setLoading(true);
-            // Try fetching by slug first as per backend routes
             let roomData;
             try {
                 roomData = await roomService.getRoomBySlug(roomId);
             } catch {
                 roomData = await roomService.getRoomById(roomId);
             }
-
             setRoom(roomData);
-
-            // Fetch history if endpoint exists, otherwise empty
-            // const msgs = await roomService.getMessages(roomId);
-            // setMessages(msgs);
-            setMessages([]);
+            setMessages([]); // Or fetch history from API
         } catch (error) {
             console.error("Error loading chat", error);
-            // navigate('/app');
         } finally {
             setLoading(false);
         }
     };
 
     const handleSendMessage = async (content, type = 'text', attachmentUrl = null) => {
-        const messageData = {
-            room: roomId,
-            user: currentUser.id,
-            content: content,
-            type: type,
-            attachment_url: attachmentUrl,
-            sender: currentUser,
-            created_at: new Date().toISOString()
-        };
-
         try {
-            socketService.sendMessage(messageData);
-            setMessages(prev => [...prev, messageData]);
+            // Optimistic update
+            const tempId = Date.now().toString();
+            const optimisticMsg = {
+                id: tempId,
+                roomId: room.id,
+                userId: currentUser.id,
+                content,
+                type,
+                attachment_url: attachmentUrl,
+                sender: currentUser,
+                createdAt: new Date().toISOString(),
+                isSending: true
+            };
+
+            setMessages(prev => [...prev, optimisticMsg]);
+
+            // Real send via socket
+            const savedMsg = await sendMessage(room.id, content);
+
+            // Update optimistic message with real one from backend
+            setMessages(prev => prev.map(m => m.id === tempId ? savedMsg : m));
+
+            // Stop typing explicitly
+            stopTyping(room.id);
         } catch (error) {
             console.error("Failed to send message", error);
+            // Mark as failed in UI if needed
         }
+    };
+
+    const handleTyping = () => {
+        startTyping(room.id);
+
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+        typingTimeoutRef.current = setTimeout(() => {
+            stopTyping(room.id);
+        }, 3000);
     };
 
     if (loading || !currentUser) {
@@ -154,8 +183,25 @@ const ChatRoom = () => {
                     uiSettings={uiSettings}
                 />
 
+                {/* Typing Indicator */}
+                <div className="px-6 h-6">
+                    {typingUsers[room.id]?.length > 0 && (
+                        <div className="flex items-center gap-2 text-[10px] text-chat-light animate-pulse font-bold uppercase tracking-widest">
+                            <div className="flex gap-1">
+                                <span className="w-1 h-1 bg-chat-light rounded-full"></span>
+                                <span className="w-1 h-1 bg-chat-light rounded-full"></span>
+                                <span className="w-1 h-1 bg-chat-light rounded-full"></span>
+                            </div>
+                            <span>
+                                {typingUsers[room.id].join(', ')} {typingUsers[room.id].length > 1 ? 'are' : 'is'} typing...
+                            </span>
+                        </div>
+                    )}
+                </div>
+
                 <ChatInput
                     onSendMessage={handleSendMessage}
+                    onTyping={handleTyping}
                     roomSlug={room.slug}
                     uiSettings={uiSettings}
                 />
@@ -165,6 +211,7 @@ const ChatRoom = () => {
                 <ChatSidebar
                     room={room}
                     currentUser={currentUser}
+                    onlineUsers={onlineUsers}
                 />
             )}
         </div>
