@@ -45,14 +45,18 @@ const ChatInput = ({ onSendMessage, onTyping, roomSlug, uiSettings }) => {
         setShowGifInput(false);
     };
 
+    const isLightTheme = uiSettings?.theme === 'light';
+    const textColorClass = isLightTheme ? 'text-slate-900' : 'text-white';
+    const subTextColorClass = isLightTheme ? 'text-slate-400' : 'text-white/30';
+
     return (
         <div className="p-4 px-6 mb-2">
             {/* GIF Input Modal */}
             {showGifInput && (
-                <div className="mb-3 bg-white/10 dark:bg-white/5 backdrop-blur-lg p-4 rounded-xl border border-white/10">
+                <div className={`mb-3 backdrop-blur-lg p-4 rounded-xl border ${isLightTheme ? 'bg-white/90 border-slate-200 shadow-xl' : 'bg-white/10 dark:bg-white/5 border-white/10'}`}>
                     <div className="flex items-center gap-2 mb-2">
                         <FileImage size={20} style={{ color: primaryColor }} />
-                        <h4 className="text-white font-semibold">Add GIF</h4>
+                        <h4 className={`font-semibold ${isLightTheme ? 'text-slate-900' : 'text-white'}`}>Add GIF</h4>
                     </div>
                     <div className="flex gap-2">
                         <input
@@ -60,7 +64,7 @@ const ChatInput = ({ onSendMessage, onTyping, roomSlug, uiSettings }) => {
                             value={gifUrl}
                             onChange={(e) => setGifUrl(e.target.value)}
                             placeholder="Paste GIF URL (e.g., from Giphy, Tenor)"
-                            className="flex-1 bg-black/20 border border-white/10 rounded-xl py-2 px-3 text-white placeholder-chat-grey focus:outline-none"
+                            className={`flex-1 border rounded-xl py-2 px-3 placeholder-chat-grey focus:outline-none ${isLightTheme ? 'bg-slate-100 border-slate-200 text-slate-900' : 'bg-black/20 border-white/10 text-white'}`}
                             style={{ borderColor: `${primaryColor}40`, fontFamily }}
                             autoFocus
                         />
@@ -76,7 +80,7 @@ const ChatInput = ({ onSendMessage, onTyping, roomSlug, uiSettings }) => {
                                 setShowGifInput(false);
                                 setGifUrl('');
                             }}
-                            className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"
+                            className={`px-4 py-2 rounded-lg transition-colors ${isLightTheme ? 'bg-slate-200 text-slate-600 hover:bg-slate-300' : 'bg-white/10 text-white hover:bg-white/20'}`}
                         >
                             Cancel
                         </button>
@@ -84,7 +88,7 @@ const ChatInput = ({ onSendMessage, onTyping, roomSlug, uiSettings }) => {
                 </div>
             )}
 
-            <div className="bg-white/10 dark:bg-white/5 backdrop-blur-md p-2 rounded-xl border border-white/10 transition-colors shadow-lg">
+            <div className={`backdrop-blur-md p-2 rounded-xl border transition-colors shadow-lg ${isLightTheme ? 'bg-white/90 border-slate-200' : 'bg-white/10 dark:bg-white/5 border-white/10'}`}>
                 <form onSubmit={handleSubmit} className="flex items-end gap-2">
                     {/* Image Upload Button */}
                     <input
@@ -97,7 +101,7 @@ const ChatInput = ({ onSendMessage, onTyping, roomSlug, uiSettings }) => {
                     <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                        className={`p-2 rounded-lg transition-colors ${isLightTheme ? 'text-slate-400 hover:text-slate-900 hover:bg-slate-100' : 'text-white/50 hover:text-white hover:bg-white/10'}`}
                         title="Upload Image"
                     >
                         <ImageIcon size={20} />
@@ -107,7 +111,7 @@ const ChatInput = ({ onSendMessage, onTyping, roomSlug, uiSettings }) => {
                     <button
                         type="button"
                         onClick={() => setShowGifInput(!showGifInput)}
-                        className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                        className={`p-2 rounded-lg transition-colors ${isLightTheme ? 'text-slate-400 hover:text-slate-900 hover:bg-slate-100' : 'text-white/50 hover:text-white hover:bg-white/10'}`}
                         title="Add GIF"
                     >
                         <FileImage size={20} />
@@ -119,7 +123,7 @@ const ChatInput = ({ onSendMessage, onTyping, roomSlug, uiSettings }) => {
                             value={message}
                             onChange={handleMessageChange}
                             placeholder={`Message #${roomSlug || 'room'}...`}
-                            className="w-full bg-transparent border-none focus:ring-0 text-white placeholder-chat-grey/70 py-2.5 max-h-32 focus:outline-none"
+                            className={`w-full bg-transparent border-none focus:ring-0 py-2.5 max-h-32 focus:outline-none ${textColorClass} placeholder-chat-grey/70`}
                             style={{ fontFamily }}
                         />
                     </div>
@@ -139,7 +143,7 @@ const ChatInput = ({ onSendMessage, onTyping, roomSlug, uiSettings }) => {
                     </div>
                 </form>
             </div>
-            <div className="text-center mt-2 text-[10px] text-white/30 font-bold uppercase tracking-widest">
+            <div className={`text-center mt-2 text-[10px] font-bold uppercase tracking-widest ${subTextColorClass}`}>
                 <strong>Return</strong> to send • <strong>Shift + Return</strong> for new line
             </div>
         </div>

@@ -7,7 +7,10 @@ const RoomCard = ({ room, currentUserId, onDelete, onEdit }) => {
 
     // Fallback to _count.participants if available, else 0
     const participantCount = room._count?.participants || 0;
-    const isOwner = room.ownerId === currentUserId;
+
+    // Robust check for owner status using multiple possible field names/structures
+    const ownerId = room.ownerId || room.owner_id || room.owner?.id;
+    const isOwner = !!currentUserId && !!ownerId && String(ownerId) === String(currentUserId);
 
     // Use primaryColor from uiSettings if available, or default blue
     const primaryColor = room.uiSettings?.primaryColor || '#6366f1';
