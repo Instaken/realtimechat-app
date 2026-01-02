@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Hash, Users, X } from 'lucide-react';
 import { roomService } from '../services/api';
@@ -6,23 +6,25 @@ import ChatSidebar from '../components/chat/ChatSidebar';
 import MessageList from '../components/chat/MessageList';
 import ChatInput from '../components/chat/ChatInput';
 import { PageLoader } from '../components/common/Loading';
-import { socketService } from '../services/socket';
+import { useSocket } from '../context/SocketContext';
 
 /**
  * Chat Room Page
  * Main chat interface with messages, input, and sidebar
  */
 const ChatRoom = () => {
-    const { roomId } = useParams(); // This could be an ID or a Slug
+    const { roomId } = useParams(); // This is the ID or Slug
     const navigate = useNavigate();
+    const { socket, joinRoom, sendMessage, startTyping, stopTyping, typingUsers, onlineUsers } = useSocket();
 
     const [currentUser, setCurrentUser] = useState(null);
     const [room, setRoom] = useState(null);
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showSidebar, setShowSidebar] = useState(true);
+    const typingTimeoutRef = useRef(null);
 
-    // Initialize socket and load data
+    // Initial Load
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem('chat_user') || '{}');
         const token = localStorage.getItem('chat_token');
@@ -76,17 +78,40 @@ const ChatRoom = () => {
         };
     }, [roomId, navigate]);
 
+    // Socket Setup
+    useEffect(() => {
+        if (room?.id) {
+            joinRoom(room.id);
+
+            if (socket) {
+                const handleNewMessage = (newMsg) => {
+                    // Check if message belongs to this room
+                    if (newMsg.roomId === room.id || newMsg.room === room.id) {
+                        setMessages(prev => {
+                            // Avoid duplicates if we already added it via ack
+                            if (prev.find(m => m.id === newMsg.id)) return prev;
+                            return [...prev, newMsg];
+                        });
+                    }
+                };
+
+                socket.on('receive_message', handleNewMessage);
+                return () => {
+                    socket.off('receive_message', handleNewMessage);
+                };
+            }
+        }
+    }, [room?.id, socket, joinRoom]);
+
     const loadRoomData = async () => {
         try {
             setLoading(true);
-            // Try fetching by slug first as per backend routes
             let roomData;
             try {
                 roomData = await roomService.getRoomBySlug(roomId);
             } catch {
                 roomData = await roomService.getRoomById(roomId);
             }
-
             setRoom(roomData);
 
             // Fetch history from DB
@@ -99,7 +124,6 @@ const ChatRoom = () => {
             }
         } catch (error) {
             console.error("Error loading chat", error);
-            // navigate('/app');
         } finally {
             setLoading(false);
         }
@@ -126,7 +150,18 @@ const ChatRoom = () => {
             // Server broadcasts the message back, which will be caught by onReceiveMessage
         } catch (error) {
             console.error("Failed to send message", error);
+            // Mark as failed in UI if needed
         }
+    };
+
+    const handleTyping = () => {
+        startTyping(room.id);
+
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+        typingTimeoutRef.current = setTimeout(() => {
+            stopTyping(room.id);
+        }, 3000);
     };
 
     if (loading || !currentUser) {
@@ -153,10 +188,9 @@ const ChatRoom = () => {
     }
 
     const { fontSettings = { family: 'Inter', baseSize: 14, weight: 'medium' } } = uiSettings;
-    const primaryColor = uiSettings.primaryColor || '#6366f1';
-
-    // Log for debugging
-    console.log("Applied UI Settings:", uiSettings);
+    const isLightTheme = uiSettings.theme === 'light';
+    const textColorClass = isLightTheme ? 'text-slate-900' : 'text-white';
+    const subTextColorClass = isLightTheme ? 'text-slate-600' : 'text-chat-light';
 
     return (
         <div
@@ -181,6 +215,7 @@ const ChatRoom = () => {
                     uiSettings={uiSettings}
                     showSidebar={showSidebar}
                     onToggleSidebar={() => setShowSidebar(!showSidebar)}
+                    isLightTheme={isLightTheme}
                 />
 
                 <MessageList
@@ -189,8 +224,25 @@ const ChatRoom = () => {
                     uiSettings={uiSettings}
                 />
 
+                {/* Typing Indicator */}
+                <div className="px-6 h-6">
+                    {typingUsers[room.id]?.length > 0 && (
+                        <div className={`flex items-center gap-2 text-[10px] ${subTextColorClass} animate-pulse font-bold uppercase tracking-widest`}>
+                            <div className="flex gap-1">
+                                <span className={`w-1 h-1 ${isLightTheme ? 'bg-slate-400' : 'bg-chat-light'} rounded-full`}></span>
+                                <span className={`w-1 h-1 ${isLightTheme ? 'bg-slate-400' : 'bg-chat-light'} rounded-full`}></span>
+                                <span className={`w-1 h-1 ${isLightTheme ? 'bg-slate-400' : 'bg-chat-light'} rounded-full`}></span>
+                            </div>
+                            <span>
+                                {typingUsers[room.id].join(', ')} {typingUsers[room.id].length > 1 ? 'are' : 'is'} typing...
+                            </span>
+                        </div>
+                    )}
+                </div>
+
                 <ChatInput
                     onSendMessage={handleSendMessage}
+                    onTyping={handleTyping}
                     roomSlug={room.slug}
                     uiSettings={uiSettings}
                 />
@@ -200,37 +252,38 @@ const ChatRoom = () => {
                 <ChatSidebar
                     room={room}
                     currentUser={currentUser}
+                    onlineUsers={onlineUsers}
                 />
             )}
         </div>
     );
 };
 
-const ChatHeader = ({ room, uiSettings, showSidebar, onToggleSidebar }) => (
+const ChatHeader = ({ room, uiSettings, showSidebar, onToggleSidebar, isLightTheme }) => (
     <div
-        className="h-16 border-b border-chat-grey/30 flex items-center justify-between px-6 backdrop-blur bg-white/10 dark:bg-chat-dark/30"
+        className={`h-16 border-b border-chat-grey/30 flex items-center justify-between px-6 backdrop-blur ${isLightTheme ? 'bg-white/80' : 'bg-white/10 dark:bg-chat-dark/30'}`}
         style={{ borderBottomColor: uiSettings?.primaryColor }}
     >
         <div className="flex items-center gap-3">
             <Hash size={24} style={{ color: uiSettings?.primaryColor || '#6366f1' }} />
             <div>
-                <h2 className="font-bold text-white leading-none">
+                <h2 className={`font-bold leading-none ${isLightTheme ? 'text-slate-900' : 'text-white'}`}>
                     {room.name}
                 </h2>
                 <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] bg-chat-grey/20 text-chat-light px-1.5 py-0.5 rounded uppercase font-bold tracking-tighter">
+                    <span className={`text-[10px] ${isLightTheme ? 'bg-slate-200 text-slate-600' : 'bg-chat-grey/20 text-chat-light'} px-1.5 py-0.5 rounded uppercase font-bold tracking-tighter`}>
                         #{room.slug}
                     </span>
                     <span className="w-1 h-1 rounded-full bg-green-500 animate-pulse"></span>
-                    <span className="text-[10px] text-chat-light/50 font-medium">LIVE</span>
+                    <span className={`text-[10px] font-medium ${isLightTheme ? 'text-slate-400' : 'text-chat-light/50'}`}>LIVE</span>
                 </div>
             </div>
         </div>
 
-        <div className="flex items-center gap-2 text-chat-light">
+        <div className={`flex items-center gap-2 ${isLightTheme ? 'text-slate-600' : 'text-chat-light'}`}>
             <button
                 onClick={onToggleSidebar}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-chat-grey/20 rounded-lg transition-colors group"
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors group ${isLightTheme ? 'hover:bg-slate-100' : 'hover:bg-chat-grey/20'}`}
             >
                 {showSidebar ? <X size={20} /> : <Users size={20} className="group-hover:scale-110 transition-transform" />}
                 <span className="hidden md:inline text-xs font-bold uppercase tracking-widest">

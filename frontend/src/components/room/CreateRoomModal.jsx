@@ -796,21 +796,21 @@ const CreateRoomModal = ({ isOpen, onClose, onCreateRoom, editingRoom }) => {
             <style>{`
                 .form-input {
                     width: 100%;
-                    background: rgba(255, 255, 255, 0.05);
-                    border: 1px solid rgba(154, 161, 198, 0.2);
+                    background: #f3f4f6;
+                    border: 1px solid #d1d5db;
                     border-radius: 0.75rem;
                     padding: 0.75rem 1rem 0.75rem 2.75rem;
-                    color: white;
+                    color: #111827;
                     font-size: 0.875rem;
                     transition: all 0.3s;
                 }
+                .form-input::placeholder {
+                    color: #94958b;
+                }
                 .dark .form-input {
                     background: rgba(0, 0, 0, 0.2);
-                }
-                .light .form-input {
-                    background: #f3f4f6;
-                    color: #111827;
-                    border-color: #d1d5db;
+                    border: 1px solid rgba(154, 161, 198, 0.2);
+                    color: white;
                 }
                 .form-input:focus {
                     outline: none;

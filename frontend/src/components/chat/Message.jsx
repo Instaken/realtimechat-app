@@ -62,7 +62,10 @@ const Message = ({ message, isCurrentUser, showAvatar, uiSettings }) => {
     const fontFamily = uiSettings?.fontSettings?.family ? `'${uiSettings.fontSettings.family}', sans-serif` : 'inherit';
     const fontWeight = weightMap[uiSettings?.fontSettings?.weight] || 500;
 
-    const isMedia = message.type === 'image' || message.type === 'gif';
+    const isLightTheme = uiSettings?.theme === 'light';
+    const usernameColorClass = isLightTheme ? 'text-slate-900' : 'text-white';
+    const bubbleBgClass = isLightTheme ? 'bg-slate-200/80 border-slate-200' : 'bg-white/10 dark:bg-white/10 border-white/10';
+    const bubbleTextColorClass = isLightTheme ? 'text-slate-800' : 'text-white/90';
 
     return (
         <div className={`flex gap-4 group ${isCurrentUser ? 'flex-row-reverse text-right' : ''}`}>
@@ -81,7 +84,7 @@ const Message = ({ message, isCurrentUser, showAvatar, uiSettings }) => {
                 {/* Header */}
                 {showAvatar && (
                     <div className={`flex items-baseline gap-2 mb-1 ${isCurrentUser ? 'flex-row-reverse' : ''}`}>
-                        <span className="font-bold text-white hover:underline cursor-pointer text-sm" style={{ fontFamily }}>
+                        <span className={`font-bold hover:underline cursor-pointer text-sm ${usernameColorClass}`} style={{ fontFamily }}>
                             {message.sender?.username || 'Unknown'}
                         </span>
                         <span className="text-[10px] text-chat-light/50">
@@ -96,14 +99,13 @@ const Message = ({ message, isCurrentUser, showAvatar, uiSettings }) => {
                 {/* Message Bubble */}
                 <div
                     className={`
-                        relative leading-relaxed break-words shadow-sm
-                        ${isMedia ? 'bg-transparent p-0' : 'px-4 py-2.5'}
+                        relative leading-relaxed break-words shadow-sm border
+                        ${isMedia ? 'bg-transparent p-0 border-none' : 'px-4 py-2.5'}
                         ${getBubbleRadius()}
-                        ${isCurrentUser && !isMedia ? 'text-white' : 'bg-white/10 dark:bg-white/10 backdrop-blur-md text-white/90'}
+                        ${isCurrentUser && !isMedia ? 'text-white border-none' : `${bubbleBgClass} ${bubbleTextColorClass}`}
                     `}
                     style={{
                         backgroundColor: (isCurrentUser && !isMedia) ? primaryColor : undefined,
-                        border: !isCurrentUser && !isMedia ? '1px solid rgba(255,255,255,0.1)' : 'none',
                         fontFamily: fontFamily,
                         fontWeight: fontWeight
                     }}
