@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Hash, Users, X } from 'lucide-react';
 import { getRoomById, getMessages, sendMessage } from '../services/mockData';

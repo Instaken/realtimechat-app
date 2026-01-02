@@ -1,4 +1,3 @@
-import React from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { LogOut, MessageSquare, Moon, Sun } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';

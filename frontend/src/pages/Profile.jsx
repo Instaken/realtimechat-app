@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, MapPin, Calendar, Save, ArrowLeft } from 'lucide-react';
 import Avatar from 'boring-avatars';

@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * Full Page Loading Component
  */

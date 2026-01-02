@@ -1,4 +1,3 @@
-import React from 'react';
 import Avatar from 'boring-avatars';
 import { Users, Calendar, Info } from 'lucide-react';
 

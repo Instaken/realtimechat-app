@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Search } from 'lucide-react';
 import { getRooms, createRoom, updateRoom, deleteRoom } from '../services/mockData';
 import RoomCard from '../components/room/RoomCard';

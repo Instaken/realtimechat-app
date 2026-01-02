@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, User, Loader2, Eye, EyeOff, Moon, Sun } from 'lucide-react';
 import { login, register } from '../services/mockData';

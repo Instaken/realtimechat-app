@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Hash, Users, Calendar, Palette } from 'lucide-react';
 
 const CreateRoomModal = ({ isOpen, onClose, onCreateRoom, editingRoom }) => {
