@@ -59,6 +59,7 @@ const Message = ({ message, isCurrentUser, showAvatar, uiSettings }) => {
         'medium': 500,
         'bold': 700
     };
+    const fontFamily = uiSettings?.fontSettings?.family ? `'${uiSettings.fontSettings.family}', sans-serif` : 'inherit';
     const fontWeight = weightMap[uiSettings?.fontSettings?.weight] || 500;
 
     const isMedia = message.type === 'image' || message.type === 'gif';
@@ -80,7 +81,7 @@ const Message = ({ message, isCurrentUser, showAvatar, uiSettings }) => {
                 {/* Header */}
                 {showAvatar && (
                     <div className={`flex items-baseline gap-2 mb-1 ${isCurrentUser ? 'flex-row-reverse' : ''}`}>
-                        <span className="font-bold text-white hover:underline cursor-pointer text-sm">
+                        <span className="font-bold text-white hover:underline cursor-pointer text-sm" style={{ fontFamily }}>
                             {message.sender?.username || 'Unknown'}
                         </span>
                         <span className="text-[10px] text-chat-light/50">
@@ -103,6 +104,7 @@ const Message = ({ message, isCurrentUser, showAvatar, uiSettings }) => {
                     style={{
                         backgroundColor: (isCurrentUser && !isMedia) ? primaryColor : undefined,
                         border: !isCurrentUser && !isMedia ? '1px solid rgba(255,255,255,0.1)' : 'none',
+                        fontFamily: fontFamily,
                         fontWeight: fontWeight
                     }}
                 >

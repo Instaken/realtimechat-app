@@ -41,19 +41,21 @@ const RoomList = () => {
     const handleSaveRoom = async (roomData) => {
         try {
             if (editingRoom) {
-                await roomService.updateRoom(editingRoom.id, roomData);
+                const response = await roomService.updateRoom(editingRoom.id, roomData);
                 await fetchRooms();
+                handleCloseModal();
+                return response.room;
             } else {
-                await roomService.createRoom(roomData);
+                const response = await roomService.createRoom(roomData);
                 await fetchRooms();
+                // We return the response so the modal can show success
+                return response.room;
             }
-            handleCloseModal();
         } catch (error) {
             console.error("Failed to save room", error.response?.data);
             const backendError = error.response?.data;
             let errorMsg = backendError?.message || error.message;
 
-            // If backend provides detailed Zod errors
             if (backendError?.errors && Array.isArray(backendError.errors)) {
                 const details = backendError.errors
                     .map(e => `${e.path ? e.path.join('.') : 'Field'}: ${e.message}`)
@@ -62,6 +64,7 @@ const RoomList = () => {
             }
 
             alert(errorMsg);
+            throw error; // Rethrow so modal knows it failed
         }
     };
 

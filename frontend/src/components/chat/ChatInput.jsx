@@ -9,6 +9,9 @@ const ChatInput = ({ onSendMessage, roomSlug, uiSettings }) => {
 
     const primaryColor = uiSettings?.primaryColor || '#6366f1';
 
+    const font = uiSettings?.fontSettings || { family: 'Inter' };
+    const fontFamily = font.family ? `'${font.family}', sans-serif` : 'inherit';
+
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!message.trim()) return;
@@ -52,8 +55,8 @@ const ChatInput = ({ onSendMessage, roomSlug, uiSettings }) => {
                             value={gifUrl}
                             onChange={(e) => setGifUrl(e.target.value)}
                             placeholder="Paste GIF URL (e.g., from Giphy, Tenor)"
-                            className="flex-1 bg-black/20 border border-white/10 rounded-lg py-2 px-3 text-white placeholder-chat-grey focus:outline-none"
-                            style={{ borderColor: `${primaryColor}40` }}
+                            className="flex-1 bg-black/20 border border-white/10 rounded-xl py-2 px-3 text-white placeholder-chat-grey focus:outline-none"
+                            style={{ borderColor: `${primaryColor}40`, fontFamily }}
                             autoFocus
                         />
                         <button
@@ -112,6 +115,7 @@ const ChatInput = ({ onSendMessage, roomSlug, uiSettings }) => {
                             onChange={(e) => setMessage(e.target.value)}
                             placeholder={`Message #${roomSlug || 'room'}...`}
                             className="w-full bg-transparent border-none focus:ring-0 text-white placeholder-chat-grey/70 py-2.5 max-h-32 focus:outline-none"
+                            style={{ fontFamily }}
                         />
                     </div>
 
