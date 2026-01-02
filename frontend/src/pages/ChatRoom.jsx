@@ -35,18 +35,44 @@ const ChatRoom = () => {
         setCurrentUser(user);
         loadRoomData();
 
-        // Socket logic
-        socketService.connect(token);
-        socketService.joinRoom(roomId);
+        // Socket logic 
+        // Note: Connection is handled in Layout.jsx globally, but we ensure room joining here.
+        // If we navigated directly here, Layout useEffect runs too.
 
-        socketService.onMessage((newMsg) => {
-            if (newMsg.room === roomId) {
-                setMessages(prev => [...prev, newMsg]);
+        const join = async () => {
+            try {
+                await socketService.joinRoom(roomId);
+            } catch (err) {
+                console.error("Failed to join room:", err);
+            }
+        };
+        join();
+
+        socketService.onReceiveMessage((newMsg) => {
+            // Check if message belongs to this room (server broadcasts to room, so it should be)
+            if (newMsg.roomId === roomId || newMsg.room_id === roomId) {
+                // Ensure we don't duplicate if we did optimistic update (though unique ID check is better)
+                setMessages(prev => {
+                    if (prev.some(m => m.id === newMsg.id)) return prev;
+                    return [...prev, newMsg];
+                });
             }
         });
 
+        socketService.onUserJoined((data) => {
+            console.log("User joined:", data);
+            // Optionally update online users list or show notification
+        });
+
+        socketService.onUserLeft((data) => {
+            console.log("User left:", data);
+        });
+
         return () => {
-            // Optional: socketService.disconnect();
+            socketService.leaveRoom(roomId);
+            socketService.off('receive_message');
+            socketService.off('user_joined');
+            socketService.off('user_left');
         };
     }, [roomId, navigate]);
 
@@ -63,10 +89,14 @@ const ChatRoom = () => {
 
             setRoom(roomData);
 
-            // Fetch history if endpoint exists, otherwise empty
-            // const msgs = await roomService.getMessages(roomId);
-            // setMessages(msgs);
-            setMessages([]);
+            // Fetch history from DB
+            try {
+                const msgs = await roomService.getRoomMessages(roomId);
+                setMessages(msgs);
+            } catch (err) {
+                console.error("Failed to load messages", err);
+                setMessages([]);
+            }
         } catch (error) {
             console.error("Error loading chat", error);
             // navigate('/app');
@@ -76,19 +106,24 @@ const ChatRoom = () => {
     };
 
     const handleSendMessage = async (content, type = 'text', attachmentUrl = null) => {
-        const messageData = {
-            room: roomId,
-            user: currentUser.id,
+        // Optimistic update (optional) - for now rely on server echo to keep it simple and sync
+        // But to make it feel fast:
+        /*
+        const tempId = Date.now();
+        const optimisticMsg = {
+            id: tempId,
+            roomId: roomId,
+            userId: currentUser.id,
             content: content,
-            type: type,
-            attachment_url: attachmentUrl,
             sender: currentUser,
-            created_at: new Date().toISOString()
+            createdAt: new Date().toISOString()
         };
+        setMessages(prev => [...prev, optimisticMsg]);
+        */
 
         try {
-            socketService.sendMessage(messageData);
-            setMessages(prev => [...prev, messageData]);
+            await socketService.sendMessage(roomId, content);
+            // Server broadcasts the message back, which will be caught by onReceiveMessage
         } catch (error) {
             console.error("Failed to send message", error);
         }

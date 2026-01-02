@@ -3,13 +3,27 @@ import { LogOut, MessageSquare, Moon, Sun } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import Avatar from 'boring-avatars';
 
+import { useSocket } from '../context/SocketContext';
+import { useEffect } from 'react';
+
 const Layout = () => {
     const navigate = useNavigate();
     const { theme, toggleTheme } = useTheme();
+    const { socketService } = useSocket();
     const currentUser = JSON.parse(localStorage.getItem('chat_user') || '{}');
 
+    // Connect to socket when layout mounts (user is authenticated)
+    useEffect(() => {
+        const token = localStorage.getItem('chat_token');
+        if (token && currentUser.id) {
+            socketService.connect(token);
+        }
+    }, [currentUser.id, socketService]);
+
     const handleLogout = () => {
+        socketService.disconnect();
         localStorage.removeItem('chat_user');
+        localStorage.removeItem('chat_token');
         navigate('/login');
     };
 

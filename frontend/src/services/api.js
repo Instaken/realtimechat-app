@@ -81,6 +81,10 @@ export const roomService = {
         // Doc says response is { "rooms": [...] }
         return response.data.rooms || [];
     },
+    getPublicRooms: async () => {
+        const response = await api.get('/rooms/public');
+        return response.data.rooms || [];
+    },
     getRoomBySlug: async (slug) => {
         const response = await api.get(`/rooms/${slug}`);
         // Doc says response is { "room": {...} }
@@ -101,6 +105,10 @@ export const roomService = {
     deleteRoom: async (id) => {
         const response = await api.delete(`/rooms/${id}`);
         return response.data;
+    },
+    getRoomMessages: async (roomId) => {
+        const response = await api.get(`/rooms/${roomId}/messages`);
+        return response.data.messages || [];
     }
 };
 

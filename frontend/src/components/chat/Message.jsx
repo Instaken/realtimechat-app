@@ -85,7 +85,7 @@ const Message = ({ message, isCurrentUser, showAvatar, uiSettings }) => {
                             {message.sender?.username || 'Unknown'}
                         </span>
                         <span className="text-[10px] text-chat-light/50">
-                            {new Date(message.created_at).toLocaleTimeString([], {
+                            {new Date(message.createdAt).toLocaleTimeString([], {
                                 hour: '2-digit',
                                 minute: '2-digit'
                             })}
