@@ -1,13 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, User, Loader2, Eye, EyeOff, Moon, Sun } from 'lucide-react';
-import { login, register } from '../services/mockData';
+import { Lock, User, Loader2, Eye, EyeOff, Moon, Sun, Calendar } from 'lucide-react';
+import { authService } from '../services/api';
 import { useTheme } from '../context/ThemeContext';
 
 const Auth = () => {
     const [isLogin, setIsLogin] = useState(true);
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({ username: '', password: '' });
+    const [formData, setFormData] = useState({
+        username: '',
+        email: '',
+        password: '',
+        birthdate: '2000-01-01', // Default for now
+    });
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
@@ -23,20 +28,26 @@ const Auth = () => {
         setLoading(true);
         setError('');
 
-        // TODO: connect to backend
         try {
-            let user;
             if (isLogin) {
-                user = await login(formData.username, formData.password);
+                // Backend 'identifier' beklentisini karşılamak için username alanını gönderiyoruz
+                await authService.login(formData.username, formData.password);
             } else {
-                user = await register(formData.username, formData.password);
+                await authService.register(formData);
+                setIsLogin(true);
+                setError('Registration successful! Please login.');
+                setLoading(false);
+                return;
             }
 
-            // Save to local storage
-            localStorage.setItem('chat_user', JSON.stringify(user));
             navigate('/app');
         } catch (err) {
-            setError(err.message || 'An error occurred');
+            console.error("Auth Error:", err.response?.data);
+            // Hata objesinde 'path' veya 'message' alanlarının varlığını kontrol ederek hata mesajını oluşturur
+            const msg = err.response?.data?.errors
+                ? err.response.data.errors.map(e => `${e.path ? e.path.join('.') : 'Error'}: ${e.message}`).join(' | ')
+                : (err.response?.data?.message || err.message || 'An error occurred');
+            setError(msg);
         } finally {
             setLoading(false);
         }
@@ -75,13 +86,42 @@ const Auth = () => {
                         <input
                             type="text"
                             name="username"
-                            placeholder="Username"
+                            placeholder={isLogin ? "Username or E-mail" : "Username"}
                             value={formData.username}
                             onChange={handleChange}
                             className="w-full bg-gray-100 dark:bg-chat-dark/50 border border-gray-300 dark:border-chat-grey/50 rounded-lg py-3 pl-10 pr-4 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-chat-grey focus:outline-none focus:border-gray-500 dark:focus:border-chat-light transition-colors"
                             required
                         />
                     </div>
+
+                    {!isLogin && (
+                        <div className="relative">
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-chat-light" size={20} />
+                            <input
+                                type="email"
+                                name="email"
+                                placeholder="Email Address"
+                                value={formData.email}
+                                onChange={handleChange}
+                                className="w-full bg-gray-100 dark:bg-chat-dark/50 border border-gray-300 dark:border-chat-grey/50 rounded-lg py-3 pl-10 pr-4 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-chat-grey focus:outline-none focus:border-gray-500 dark:focus:border-chat-light transition-colors"
+                                required
+                            />
+                        </div>
+                    )}
+
+                    {!isLogin && (
+                        <div className="relative">
+                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-chat-light" size={20} />
+                            <input
+                                type="date"
+                                name="birthdate"
+                                value={formData.birthdate}
+                                onChange={handleChange}
+                                className="w-full bg-gray-100 dark:bg-chat-dark/50 border border-gray-300 dark:border-chat-grey/50 rounded-lg py-3 pl-10 pr-4 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-chat-grey focus:outline-none focus:border-gray-500 dark:focus:border-chat-light transition-colors"
+                                required
+                            />
+                        </div>
+                    )}
 
                     <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-chat-light" size={20} />

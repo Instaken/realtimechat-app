@@ -5,7 +5,10 @@ import UserAvatar from '../common/UserAvatar';
  * Single Message Component
  * Displays a chat message with avatar, username, timestamp and content
  */
-const Message = ({ message, isCurrentUser, showAvatar }) => {
+const Message = ({ message, isCurrentUser, showAvatar, uiSettings }) => {
+    const bubbleStyle = uiSettings?.bubbleStyle || 'rounded';
+    const primaryColor = uiSettings?.primaryColor || '#6366f1';
+
     const renderContent = () => {
         // Image message
         if (message.type === 'image' && message.attachment_url) {
@@ -42,10 +45,26 @@ const Message = ({ message, isCurrentUser, showAvatar }) => {
         return message.content;
     };
 
+    // Determine bubble classes based on style
+    const getBubbleRadius = () => {
+        if (bubbleStyle === 'sharp') return 'rounded-none';
+        if (bubbleStyle === 'modern') return isCurrentUser ? 'rounded-2xl rounded-tr-none' : 'rounded-2xl rounded-tl-none';
+        // default 'rounded'
+        return 'rounded-[1.25rem]';
+    };
+
+    const weightMap = {
+        'light': 300,
+        'regular': 400,
+        'medium': 500,
+        'bold': 700
+    };
+    const fontWeight = weightMap[uiSettings?.fontSettings?.weight] || 500;
+
     const isMedia = message.type === 'image' || message.type === 'gif';
 
     return (
-        <div className="flex gap-4 group">
+        <div className={`flex gap-4 group ${isCurrentUser ? 'flex-row-reverse text-right' : ''}`}>
             {/* Avatar */}
             <div className="w-10 sm:w-12 flex-shrink-0">
                 {showAvatar && (
@@ -57,14 +76,14 @@ const Message = ({ message, isCurrentUser, showAvatar }) => {
             </div>
 
             {/* Message Content */}
-            <div className="flex-1 min-w-0">
+            <div className={`flex-1 min-w-0 max-w-[80%] ${isCurrentUser ? 'flex flex-col items-end' : ''}`}>
                 {/* Header */}
                 {showAvatar && (
-                    <div className="flex items-baseline gap-2 mb-1">
-                        <span className="font-bold text-white hover:underline cursor-pointer">
+                    <div className={`flex items-baseline gap-2 mb-1 ${isCurrentUser ? 'flex-row-reverse' : ''}`}>
+                        <span className="font-bold text-white hover:underline cursor-pointer text-sm">
                             {message.sender?.username || 'Unknown'}
                         </span>
-                        <span className="text-xs text-chat-light/60">
+                        <span className="text-[10px] text-chat-light/50">
                             {new Date(message.created_at).toLocaleTimeString([], {
                                 hour: '2-digit',
                                 minute: '2-digit'
@@ -74,27 +93,31 @@ const Message = ({ message, isCurrentUser, showAvatar }) => {
                 )}
 
                 {/* Message Bubble */}
-                <div className={`
-                    relative text-[15px] leading-relaxed break-words
-                    ${isMedia
-                        ? 'bg-transparent p-0'
-                        : 'bg-[#565666] dark:bg-[#565666] bg-gray-200 text-chat-light/90 dark:text-chat-light/90 text-gray-800 px-4 py-2 rounded-r-xl rounded-bl-xl'
-                    }
-                    ${isCurrentUser && !isMedia
-                        ? '!bg-[#606070] dark:!bg-[#606070] !bg-blue-500 !text-white'
-                        : ''
-                    }
-                `}>
+                <div
+                    className={`
+                        relative leading-relaxed break-words shadow-sm
+                        ${isMedia ? 'bg-transparent p-0' : 'px-4 py-2.5'}
+                        ${getBubbleRadius()}
+                        ${isCurrentUser && !isMedia ? 'text-white' : 'bg-white/10 dark:bg-white/10 backdrop-blur-md text-white/90'}
+                    `}
+                    style={{
+                        backgroundColor: (isCurrentUser && !isMedia) ? primaryColor : undefined,
+                        border: !isCurrentUser && !isMedia ? '1px solid rgba(255,255,255,0.1)' : 'none',
+                        fontWeight: fontWeight
+                    }}
+                >
                     {renderContent()}
                 </div>
             </div>
 
             {/* Message Actions */}
-            <div className="w-8 flex items-start opacity-0 group-hover:opacity-100 transition-opacity pt-6">
-                <button className="p-1 hover:bg-chat-grey/30 rounded text-chat-light/50 hover:text-white">
-                    <MoreVertical size={16} />
-                </button>
-            </div>
+            {!isMedia && (
+                <div className={`w-8 flex items-start opacity-0 group-hover:opacity-100 transition-opacity ${showAvatar ? 'pt-6' : 'pt-1'} ${isCurrentUser ? 'flex-row-reverse' : ''}`}>
+                    <button className="p-1 hover:bg-white/10 rounded transition-colors text-chat-light/50">
+                        <MoreVertical size={14} />
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

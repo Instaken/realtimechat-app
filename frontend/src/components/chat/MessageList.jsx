@@ -6,7 +6,7 @@ import Message from './Message';
  * Displays a scrollable list of chat messages
  * Auto-scrolls to bottom when new messages arrive
  */
-const MessageList = ({ messages, currentUserId }) => {
+const MessageList = ({ messages, currentUserId, uiSettings }) => {
     const messagesEndRef = useRef(null);
 
     // Auto-scroll to bottom when messages change
@@ -30,6 +30,7 @@ const MessageList = ({ messages, currentUserId }) => {
                             message={msg}
                             isCurrentUser={isCurrentUser}
                             showAvatar={showAvatar}
+                            uiSettings={uiSettings}
                         />
                     </div>
                 );

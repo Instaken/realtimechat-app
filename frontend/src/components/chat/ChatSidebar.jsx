@@ -13,22 +13,30 @@ const ChatSidebar = ({ room, currentUser }) => {
             {/* Room Info Section */}
             <div className="p-6 border-b border-chat-grey/20">
                 <div className="flex items-center gap-2 mb-3">
-                    <Info size={18} className="text-chat-light" />
-                    <h3 className="font-bold text-white">About Channel</h3>
+                    <Info size={18} style={{ color: room?.uiSettings?.primaryColor || '#6366f1' }} />
+                    <h3 className="font-bold text-white text-sm uppercase tracking-wider">Sticky Message</h3>
                 </div>
-                <p className="text-sm text-chat-light/90 mb-4">
-                    {room?.description || "A place to discuss everything related to this topic."}
-                </p>
+                <div className="bg-white/5 border border-white/10 p-3 rounded-xl mb-4 shadow-inner">
+                    <p className="text-sm text-chat-light/90 leading-relaxed italic">
+                        "{room?.logicConfig?.stickyMessage || room?.description || "Welcome to our room! Please be respectful to others."}"
+                    </p>
+                </div>
 
                 {/* Room Details */}
-                <div className="space-y-2 text-xs">
-                    <div className="flex items-center gap-2 text-chat-light/80">
-                        <Users size={14} />
-                        <span>Max Users: {room?.max_users || 50}</span>
+                <div className="space-y-3">
+                    <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-chat-light/40">
+                        <div className="flex items-center gap-2">
+                            <Users size={12} />
+                            <span>Capacity</span>
+                        </div>
+                        <span className="text-chat-light/80">{room?.maxUsers || 50} users</span>
                     </div>
-                    <div className="flex items-center gap-2 text-chat-light/80">
-                        <Calendar size={14} />
-                        <span>Age Limit: {room?.age_limit || 13}+</span>
+                    <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-chat-light/40">
+                        <div className="flex items-center gap-2">
+                            <Calendar size={12} />
+                            <span>Retention</span>
+                        </div>
+                        <span className="text-chat-light/80">{room?.logicConfig?.historyRetentionDays || 30} Days</span>
                     </div>
                 </div>
             </div>

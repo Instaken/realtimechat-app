@@ -1,11 +1,13 @@
 import React, { useState, useRef } from 'react';
 import { Send, Image as ImageIcon, FileImage } from 'lucide-react';
 
-const ChatInput = ({ onSendMessage, roomSlug }) => {
+const ChatInput = ({ onSendMessage, roomSlug, uiSettings }) => {
     const [message, setMessage] = useState('');
     const [showGifInput, setShowGifInput] = useState(false);
     const [gifUrl, setGifUrl] = useState('');
     const fileInputRef = useRef(null);
+
+    const primaryColor = uiSettings?.primaryColor || '#6366f1';
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -39,9 +41,9 @@ const ChatInput = ({ onSendMessage, roomSlug }) => {
         <div className="p-4 px-6 mb-2">
             {/* GIF Input Modal */}
             {showGifInput && (
-                <div className="mb-3 bg-[#565666] p-4 rounded-xl border border-chat-grey/30">
+                <div className="mb-3 bg-white/10 dark:bg-white/5 backdrop-blur-lg p-4 rounded-xl border border-white/10">
                     <div className="flex items-center gap-2 mb-2">
-                        <FileImage size={20} className="text-chat-light" />
+                        <FileImage size={20} style={{ color: primaryColor }} />
                         <h4 className="text-white font-semibold">Add GIF</h4>
                     </div>
                     <div className="flex gap-2">
@@ -50,12 +52,14 @@ const ChatInput = ({ onSendMessage, roomSlug }) => {
                             value={gifUrl}
                             onChange={(e) => setGifUrl(e.target.value)}
                             placeholder="Paste GIF URL (e.g., from Giphy, Tenor)"
-                            className="flex-1 bg-chat-dark/50 border border-chat-grey/50 rounded-lg py-2 px-3 text-white placeholder-chat-grey focus:outline-none focus:border-chat-light"
+                            className="flex-1 bg-black/20 border border-white/10 rounded-lg py-2 px-3 text-white placeholder-chat-grey focus:outline-none"
+                            style={{ borderColor: `${primaryColor}40` }}
                             autoFocus
                         />
                         <button
                             onClick={handleGifSubmit}
-                            className="px-4 py-2 bg-chat-light text-chat-dark rounded-lg font-semibold hover:bg-white transition-colors"
+                            className="px-4 py-2 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                            style={{ backgroundColor: primaryColor }}
                         >
                             Send
                         </button>
@@ -64,18 +68,15 @@ const ChatInput = ({ onSendMessage, roomSlug }) => {
                                 setShowGifInput(false);
                                 setGifUrl('');
                             }}
-                            className="px-4 py-2 bg-chat-grey/20 text-white rounded-lg hover:bg-chat-grey/30 transition-colors"
+                            className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"
                         >
                             Cancel
                         </button>
                     </div>
-                    <p className="text-xs text-chat-light/60 mt-2">
-                        Tip: Right-click on a GIF and select "Copy Image Address" to get the URL
-                    </p>
                 </div>
             )}
 
-            <div className="bg-white dark:bg-[#565666] p-2 rounded-xl border border-chat-grey/30 focus-within:border-chat-light/50 transition-colors shadow-lg">
+            <div className="bg-white/10 dark:bg-white/5 backdrop-blur-md p-2 rounded-xl border border-white/10 transition-colors shadow-lg">
                 <form onSubmit={handleSubmit} className="flex items-end gap-2">
                     {/* Image Upload Button */}
                     <input
@@ -88,7 +89,7 @@ const ChatInput = ({ onSendMessage, roomSlug }) => {
                     <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="p-2 text-chat-light/70 dark:text-chat-light/70 text-gray-600 hover:text-gray-900 dark:hover:text-white hover:bg-chat-grey/20 rounded-lg transition-colors"
+                        className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                         title="Upload Image"
                     >
                         <ImageIcon size={20} />
@@ -98,7 +99,7 @@ const ChatInput = ({ onSendMessage, roomSlug }) => {
                     <button
                         type="button"
                         onClick={() => setShowGifInput(!showGifInput)}
-                        className="p-2 text-chat-light/70 dark:text-chat-light/70 text-gray-600 hover:text-gray-900 dark:hover:text-white hover:bg-chat-grey/20 rounded-lg transition-colors"
+                        className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                         title="Add GIF"
                     >
                         <FileImage size={20} />
@@ -110,7 +111,7 @@ const ChatInput = ({ onSendMessage, roomSlug }) => {
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
                             placeholder={`Message #${roomSlug || 'room'}...`}
-                            className="w-full bg-transparent border-none focus:ring-0 text-gray-900 dark:text-white placeholder-chat-grey/70 py-2.5 max-h-32 focus:outline-none"
+                            className="w-full bg-transparent border-none focus:ring-0 text-white placeholder-chat-grey/70 py-2.5 max-h-32 focus:outline-none"
                         />
                     </div>
 
@@ -118,15 +119,19 @@ const ChatInput = ({ onSendMessage, roomSlug }) => {
                         <button
                             type="submit"
                             disabled={!message.trim()}
-                            className="p-2 bg-chat-light/10 text-chat-light hover:bg-chat-light hover:text-chat-dark rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ml-1"
+                            className="p-2 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed ml-1"
+                            style={{
+                                backgroundColor: message.trim() ? `${primaryColor}20` : 'transparent',
+                                color: primaryColor
+                            }}
                         >
                             <Send size={20} />
                         </button>
                     </div>
                 </form>
             </div>
-            <div className="text-center mt-2 text-xs text-chat-grey dark:text-chat-grey light:text-gray-500">
-                <strong>Return</strong> to send, <strong>Shift + Return</strong> to add a new line
+            <div className="text-center mt-2 text-[10px] text-white/30 font-bold uppercase tracking-widest">
+                <strong>Return</strong> to send • <strong>Shift + Return</strong> for new line
             </div>
         </div>
     );
