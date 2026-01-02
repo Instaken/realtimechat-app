@@ -7,6 +7,7 @@ const ChatSidebar = ({ room, currentUser, onlineUsers = [] }) => {
     const ui = room?.uiSettings || {};
     const primaryColor = ui.primaryColor || '#6366f1';
     const sidebarColor = ui.bgType === 'color' ? ui.bgValue : '#2d3748';
+    const onlineCount = onlineUsers.length > 0 ? onlineUsers.length : (currentUser ? 1 : 0);
 
     const isLightTheme = ui.theme === 'light';
     const textColorClass = isLightTheme ? 'text-slate-900' : 'text-white';

@@ -13,6 +13,7 @@ const RoomList = () => {
     const [myRooms, setMyRooms] = useState([]);
     const [publicRooms, setPublicRooms] = useState([]);
     const [activeTab, setActiveTab] = useState('public'); // 'public' or 'my'
+    const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,21 +27,40 @@ const RoomList = () => {
     }, []);
 
     const fetchRooms = async () => {
+        setLoading(true);
+        setError(null);
         try {
-            setLoading(true);
-            const [myRoomsData, publicRoomsData] = await Promise.all([
+            // Use allSettled to allow partial success (e.g., if public rooms fails but my rooms works)
+            const [myRoomsResult, publicRoomsResult] = await Promise.allSettled([
                 roomService.getMyRooms(),
                 roomService.getPublicRooms()
             ]);
 
-            setMyRooms(Array.isArray(myRoomsData) ? myRoomsData : []);
-            setPublicRooms(Array.isArray(publicRoomsData) ? publicRoomsData : []);
+            // Handle My Rooms
+            if (myRoomsResult.status === 'fulfilled') {
+                setMyRooms(Array.isArray(myRoomsResult.value) ? myRoomsResult.value : []);
+            } else {
+                console.error("Failed to load my rooms", myRoomsResult.reason);
+            }
 
-            // If user has no rooms, default to public tab, otherwise default to public anyway as per request "see public rooms"
-            // But if we want to prioritize their own:
-            // if (myRoomsData.length > 0) setActiveTab('my');
+            // Handle Public Rooms
+            if (publicRoomsResult.status === 'fulfilled') {
+                setPublicRooms(Array.isArray(publicRoomsResult.value) ? publicRoomsResult.value : []);
+            } else {
+                console.error("Failed to load public rooms", publicRoomsResult.reason);
+            }
+
+            // Set error if both failed
+            if (myRoomsResult.status === 'rejected' && publicRoomsResult.status === 'rejected') {
+                setError("Failed to load rooms. Please check your connection.");
+            } else if (myRoomsResult.status === 'rejected' || publicRoomsResult.status === 'rejected') {
+                // Optional: show a warning or toast about partial failure
+                console.warn("Some data failed to load");
+            }
+
         } catch (error) {
-            console.error("Failed to load rooms", error);
+            console.error("Unexpected error loading rooms", error);
+            setError("An unexpected error occurred.");
         } finally {
             setLoading(false);
         }
@@ -120,13 +140,20 @@ const RoomList = () => {
                 onCreateClick={() => setIsModalOpen(true)}
             />
 
+            {error && (
+                <div className="mb-6 p-4 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-xl border border-red-200 dark:border-red-800 flex items-center gap-2">
+                    <span>⚠️</span>
+                    {error}
+                </div>
+            )}
+
             {/* Tabs */}
             <div className="flex gap-4 mb-8 border-b border-gray-200 dark:border-chat-grey/30">
                 <button
                     onClick={() => setActiveTab('public')}
                     className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors relative ${activeTab === 'public'
-                            ? 'text-gray-900 dark:text-white'
-                            : 'text-gray-500 dark:text-chat-grey hover:text-gray-700 dark:hover:text-chat-light'
+                        ? 'text-gray-900 dark:text-white'
+                        : 'text-gray-500 dark:text-chat-grey hover:text-gray-700 dark:hover:text-chat-light'
                         }`}
                 >
                     <Globe size={18} />
@@ -138,8 +165,8 @@ const RoomList = () => {
                 <button
                     onClick={() => setActiveTab('my')}
                     className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors relative ${activeTab === 'my'
-                            ? 'text-gray-900 dark:text-white'
-                            : 'text-gray-500 dark:text-chat-grey hover:text-gray-700 dark:hover:text-chat-light'
+                        ? 'text-gray-900 dark:text-white'
+                        : 'text-gray-500 dark:text-chat-grey hover:text-gray-700 dark:hover:text-chat-light'
                         }`}
                 >
                     <User size={18} />

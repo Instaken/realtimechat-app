@@ -2,11 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Hash, Users, X } from 'lucide-react';
 import { roomService } from '../services/api';
+import { socketService } from '../services/socket';
 import ChatSidebar from '../components/chat/ChatSidebar';
 import MessageList from '../components/chat/MessageList';
 import ChatInput from '../components/chat/ChatInput';
 import { PageLoader } from '../components/common/Loading';
-import { useSocket } from '../context/SocketContext';
 
 /**
  * Chat Room Page
@@ -15,7 +15,10 @@ import { useSocket } from '../context/SocketContext';
 const ChatRoom = () => {
     const { roomId } = useParams(); // This is the ID or Slug
     const navigate = useNavigate();
-    const { socket, joinRoom, sendMessage, startTyping, stopTyping, typingUsers, onlineUsers } = useSocket();
+
+    // Local state for socket events
+    const [typingUsers, setTypingUsers] = useState([]);
+    const [onlineUsers, setOnlineUsers] = useState([]);
 
     const [currentUser, setCurrentUser] = useState(null);
     const [room, setRoom] = useState(null);
@@ -63,11 +66,66 @@ const ChatRoom = () => {
 
         socketService.onUserJoined((data) => {
             console.log("User joined:", data);
-            // Optionally update online users list or show notification
+            setOnlineUsers(prev => {
+                if (prev.some(u => u.userId === data.userId || u.id === data.userId)) return prev;
+                // Normalize user object
+                const newUser = {
+                    userId: data.userId || data.user?.id,
+                    username: data.username || data.user?.username,
+                    socketId: data.socketId
+                };
+                return [...prev, newUser];
+            });
         });
 
         socketService.onUserLeft((data) => {
             console.log("User left:", data);
+            setOnlineUsers(prev => prev.filter(u => u.userId !== data.userId && u.socketId !== data.socketId));
+        });
+
+        socketService.onOnlineUsers((users) => {
+            console.log("Online users sync:", users);
+            // Ensure robust mapping
+            const mappedUsers = users.map(u => ({
+                userId: u.userId || u.id,
+                username: u.username,
+                socketId: u.socketId
+            }));
+            setOnlineUsers(mappedUsers);
+        });
+
+        socketService.onUserTyping((data) => {
+            console.log("Typing event received:", data);
+            // Robust check: match either the slug (roomId) or the numeric ID (room.id)
+            const targetRoomId = String(data.roomId);
+            const currentRoomSlug = String(roomId);
+            const currentRoomId = room ? String(room.id) : null;
+
+            if (targetRoomId !== currentRoomSlug && targetRoomId !== currentRoomId) return;
+
+            const username = data.username || data.user?.username;
+            if (!username) return;
+
+            setTypingUsers(prev => {
+                if (!prev.includes(username)) {
+                    return [...prev, username];
+                }
+                return prev;
+            });
+        });
+
+        socketService.onUserStoppedTyping((data) => {
+            // Robust check
+            const targetRoomId = String(data.roomId);
+            const currentRoomSlug = String(roomId);
+            const currentRoomId = room ? String(room.id) : null;
+
+            if (targetRoomId !== currentRoomSlug && targetRoomId !== currentRoomId) return;
+
+            const username = data.username || data.user?.username;
+            if (!username) return;
+
+            setTypingUsers(prev => prev.filter(u => u !== username));
         });
 
         return () => {
@@ -75,33 +133,13 @@ const ChatRoom = () => {
             socketService.off('receive_message');
             socketService.off('user_joined');
             socketService.off('user_left');
+            socketService.off('online_users');
+            socketService.off('user_typing');
+            socketService.off('user_stopped_typing');
         };
     }, [roomId, navigate]);
 
-    // Socket Setup
-    useEffect(() => {
-        if (room?.id) {
-            joinRoom(room.id);
 
-            if (socket) {
-                const handleNewMessage = (newMsg) => {
-                    // Check if message belongs to this room
-                    if (newMsg.roomId === room.id || newMsg.room === room.id) {
-                        setMessages(prev => {
-                            // Avoid duplicates if we already added it via ack
-                            if (prev.find(m => m.id === newMsg.id)) return prev;
-                            return [...prev, newMsg];
-                        });
-                    }
-                };
-
-                socket.on('receive_message', handleNewMessage);
-                return () => {
-                    socket.off('receive_message', handleNewMessage);
-                };
-            }
-        }
-    }, [room?.id, socket, joinRoom]);
 
     const loadRoomData = async () => {
         try {
@@ -155,12 +193,12 @@ const ChatRoom = () => {
     };
 
     const handleTyping = () => {
-        startTyping(room.id);
+        socketService.startTyping(roomId);
 
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
 
         typingTimeoutRef.current = setTimeout(() => {
-            stopTyping(room.id);
+            socketService.stopTyping(roomId);
         }, 3000);
     };
 
@@ -226,7 +264,7 @@ const ChatRoom = () => {
 
                 {/* Typing Indicator */}
                 <div className="px-6 h-6">
-                    {typingUsers[room.id]?.length > 0 && (
+                    {typingUsers.length > 0 && (
                         <div className={`flex items-center gap-2 text-[10px] ${subTextColorClass} animate-pulse font-bold uppercase tracking-widest`}>
                             <div className="flex gap-1">
                                 <span className={`w-1 h-1 ${isLightTheme ? 'bg-slate-400' : 'bg-chat-light'} rounded-full`}></span>
@@ -234,7 +272,7 @@ const ChatRoom = () => {
                                 <span className={`w-1 h-1 ${isLightTheme ? 'bg-slate-400' : 'bg-chat-light'} rounded-full`}></span>
                             </div>
                             <span>
-                                {typingUsers[room.id].join(', ')} {typingUsers[room.id].length > 1 ? 'are' : 'is'} typing...
+                                {typingUsers.join(', ')} {typingUsers.length > 1 ? 'are' : 'is'} typing...
                             </span>
                         </div>
                     )}

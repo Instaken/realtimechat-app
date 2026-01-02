@@ -9,6 +9,8 @@ const Message = ({ message, isCurrentUser, showAvatar, uiSettings }) => {
     const bubbleStyle = uiSettings?.bubbleStyle || 'rounded';
     const primaryColor = uiSettings?.primaryColor || '#6366f1';
 
+    const isMedia = message.type === 'image' || message.type === 'gif';
+
     const renderContent = () => {
         // Image message
         if (message.type === 'image' && message.attachment_url) {
@@ -82,19 +84,18 @@ const Message = ({ message, isCurrentUser, showAvatar, uiSettings }) => {
             {/* Message Content */}
             <div className={`flex-1 min-w-0 max-w-[80%] ${isCurrentUser ? 'flex flex-col items-end' : ''}`}>
                 {/* Header */}
-                {showAvatar && (
-                    <div className={`flex items-baseline gap-2 mb-1 ${isCurrentUser ? 'flex-row-reverse' : ''}`}>
-                        <span className={`font-bold hover:underline cursor-pointer text-sm ${usernameColorClass}`} style={{ fontFamily }}>
-                            {message.sender?.username || 'Unknown'}
-                        </span>
-                        <span className="text-[10px] text-chat-light/50">
-                            {new Date(message.createdAt).toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}
-                        </span>
-                    </div>
-                )}
+                {/* Header - Always show username/time as requested */}
+                <div className={`flex items-baseline gap-2 mb-1 ${isCurrentUser ? 'flex-row-reverse' : ''}`}>
+                    <span className={`font-bold hover:underline cursor-pointer text-sm ${usernameColorClass}`} style={{ fontFamily }}>
+                        {message.sender?.username || 'Unknown'}
+                    </span>
+                    <span className="text-[10px] text-chat-light/50">
+                        {new Date(message.createdAt).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}
+                    </span>
+                </div>
 
                 {/* Message Bubble */}
                 <div
