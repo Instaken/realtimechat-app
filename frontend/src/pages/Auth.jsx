@@ -23,6 +23,7 @@ const Auth = () => {
         setLoading(true);
         setError('');
 
+        // TODO: connect to backend
         try {
             let user;
             if (isLogin) {

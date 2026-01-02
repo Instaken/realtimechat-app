@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, MapPin, Calendar, Save, ArrowLeft } from 'lucide-react';
 import Avatar from 'boring-avatars';
+import { Datepicker } from 'flowbite-react';
 
 const Profile = () => {
     const navigate = useNavigate();
@@ -103,9 +104,9 @@ const Profile = () => {
                 </div>
 
                 {/* Profile Card */}
-                <div className="bg-white dark:bg-[#565666] rounded-2xl shadow-xl overflow-hidden mb-6">
+                <div className="bg-white dark:bg-[#565666] rounded-2xl shadow-xl mb-6">
                     {/* Avatar Section */}
-                    <div className="bg-[#464655] dark:bg-[#3b3b4d] p-8 text-center border-b border-chat-grey/20">
+                    <div className="bg-[#464655] dark:bg-[#3b3b4d] p-8 text-center border-b border-chat-grey/20 rounded-t-2xl">
                         <div className="inline-block p-2 bg-white/10 rounded-full mb-4">
                             <Avatar
                                 size={120}
@@ -166,10 +167,9 @@ const Profile = () => {
                                     onChange={handleChange}
                                     className="w-full bg-gray-100 dark:bg-chat-dark/50 border border-gray-300 dark:border-chat-grey/50 rounded-lg py-3 px-4 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-chat-light transition-colors"
                                 >
-                                    <option value="">Select Gender</option>
+                                    <option value="placeholder">Select Gender</option>
                                     <option value="male">Male</option>
                                     <option value="female">Female</option>
-                                    <option value="other">Other</option>
                                     <option value="prefer-not-to-say">Prefer not to say</option>
                                 </select>
                             </div>
@@ -179,14 +179,27 @@ const Profile = () => {
                                     <Calendar size={18} />
                                     Birthdate
                                 </label>
-                                <input
-                                    type="date"
-                                    name="birthdate"
-                                    value={formData.birthdate}
-                                    onChange={handleChange}
-                                    max={new Date().toISOString().split('T')[0]}
-                                    className="w-full bg-gray-100 dark:bg-chat-dark/50 border border-gray-300 dark:border-chat-grey/50 rounded-lg py-3 px-4 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-chat-light transition-colors"
-                                />
+                                <div className="flowbite-datepicker-container">
+                                    <Datepicker
+                                        value={formData.birthdate ? new Date(formData.birthdate) : null}
+                                        onSelectedDateChanged={(date) => {
+                                            const formattedDate = date.toISOString().split('T')[0];
+                                            setFormData(prev => ({ ...prev, birthdate: formattedDate }));
+                                            setSaved(false);
+                                        }}
+                                        maxDate={new Date()}
+                                        theme={{
+                                            root: {
+                                                base: "relative w-full"
+                                            },
+                                            popup: {
+                                                root: {
+                                                    base: "absolute top-10 z-50 block pt-2"
+                                                }
+                                            }
+                                        }}
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -207,7 +220,7 @@ const Profile = () => {
                         </div>
 
                         {/* Save Button */}
-                        <div className="pt-4">
+                        <div className="pt-4 pb-12">
                             <button
                                 type="submit"
                                 className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-chat-light dark:hover:bg-white text-white dark:text-chat-dark font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"

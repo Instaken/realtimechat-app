@@ -1,45 +1,72 @@
-# ChatZUO - Real-Time Chat Application
+# 🚀 ChatUZO - Premium Real-Time Chat Experience
 
-ChatZUO, modern bir kullanıcı deneyimi sunan, React ve Tailwind CSS v4 ile geliştirilmiş bir gerçek zamanlı sohbet uygulamasıdır. Bu dokümantasyon, projenin mimarisini ve kod parçalarını detaylı olarak açıklamaktadır.
+ChatUZO, modern web teknolojileriyle geliştirilmiş, hız ve estetik odaklı bir mesajlaşma platformudur. **React 19** ve **Tailwind CSS v4**'ün gücünü kullanarak, kullanıcılara akıcı, güvenli ve premium bir deneyim sunar.
 
-## 📁 Proje Yapısı ve Kod Bölümleri
+---
 
-### 1. Giriş ve Yönlendirme Kontrolü (`App.jsx`)
-Uygulamanın ana giriş noktasıdır. **React Router** kullanarak sayfalar arasındaki navigasyonu yönetir.
-- **`ProtectedRoute`**: Kullanıcının giriş yapıp yapmadığını `localStorage` üzerinden kontrol eder. Giriş yapmamış kullanıcıları otomatik olarak `/login` sayfasına yönlendirir.
-- **Rotalar**: Uygulama içeriği `/app` altında toplanmıştır, böylece giriş ekranı ve ana uygulama net bir şekilde ayrılmıştır.
+## ✨ Temel Özellikler
 
-### 2. Tema Yönetimi (`src/context/ThemeContext.jsx`)
-Uygulamanın karanlık (Dark) ve aydınlık (Light) mod desteğini sağlayan merkezi sistemdir.
-- Kullanıcı tercihlerini tarayıcı belleğinde (`localStorage`) saklar.
-- Değişim anında `html` ve `body` etiketlerine `.dark` sınıfını ekleyerek tüm bileşenlerin rengini dinamik olarak günceller.
+- 🌓 **Dinamik Tema Sistemi**: Tek tıkla geçiş yapılabilen, göz yormayan Dark/Light mod desteği.
+- � **Çoklu Oda Yönetimi**: Farklı topluluklar için özel odalar oluşturma, düzenleme ve arama.
+- 🎨 **Kişiselleştirilmiş Tasarım**: Her oda için özel renk paleti tanımlama imkanı.
+- 📱 **Tam Duyarlı (Responsive)**: Mobilden masaüstüne her cihazda kusursuz görünüm.
+- 🔒 **Güvenli Kimlik Doğrulama**: Kullanıcı kayıt ve giriş sistemleri.
+- 🎭 **Dinamik Avatarlar**: Boring-Avatars entegrasyonu ile her kullanıcıya özel görsel kimlik.
 
-### 3. Kullanıcı Bilgileri ve Veri Katmanı (`src/services/mockData.js`)
-Henüz bir backend sunucusu olmadığı için, bu dosya tüm backend operasyonlarını simüle eder.
-- **Veri Saklama**: Odalar, mesajlar ve kullanıcı verileri JSON formatında tarayıcı belleğinde saklanır.
-- **Fonksiyonlar**: `login`, `register`, `getRooms`, `createRoom`, `sendMessage` gibi asenkron fonksiyonlar gerçek bir API gibi davranır.
+---
 
-### 4. Bileşen Detayları (`src/components/`)
-- **`Layout.jsx`**: Uygulamanın tepesindeki çubuğu (Header) ve genel sayfa yapısını kurar. Logoyu ve profil navigasyonunu barındırır.
-- **`MessageList.jsx` & `Message.jsx`**: Mesajlaşma ekranının can damarıdır. Her yeni mesaj geldiğinde listeyi otomatik olarak en aşağı kaydırır (`scrollIntoView`).
-- **`CreateRoomModal.jsx`**: Yeni oda açarken veya düzenlerken kullanılan kapsamlı bir form dur. Odanın "About Channel" bilgisinden renk özelleştirmesine kadar her şeyi yönetir.
-- **`UserAvatar.jsx`**: Kullanıcılara dinamik ve renkli avatarlar atar.
+## 🛠️ Teknik Altyapı (Frontend Stack)
 
-### 5. Sayfa Detayları (`src/pages/`)
-- **`Auth.jsx`**: Karşılama, giriş ve kayıt süreçlerini yönetir. Şifre gizleme/gösterme gibi kullanıcı dostu özelliklere sahiptir.
-- **`RoomList.jsx`**: Tüm odaların sergilendiği ana lobidir. Arama filtresi ile odaları ismine veya açıklamasına göre süzebilirsiniz.
-- **`ChatRoom.jsx`**: Mesajlaşmanın döndüğü sayfadır. Oda verilerini ve mesajları yükleyerek kullanıcıya sunar.
-- **`Profile.jsx`**: Kullanıcı ayarları sayfasıdır. Kullanıcının görünümünü ve kişisel detaylarını yönetmesini sağlar.
+- **Framework**: [React 19](https://react.dev/) (Modern Component Mimarisi)
+- **Bundler**: [Vite](https://vitejs.dev/) (Ultra hızlı geliştirme deneyimi)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) (Modern ve esnek tasarım sistemi)
+- **İkonlar**: [Lucide React](https://lucide.dev/) (Kapsamlı ve performanslı ikon seti)
+- **Yönlendirme**: [React Router 7](https://reactrouter.com/) (Gelişmiş navigasyon yönetimi)
+- **Veri Saklama**: [Local Storage Mock Engine](src/services/mockData.js) (Gerçek bir veritabanı gibi davranan yerel depolama sistemi)
 
-### 6. Stil ve Tasarım (`src/index.css`)
-Tailwind CSS v4'ün en yeni özelliklerini kullanır.
-- Koyu mod geçişleri için özel CSS "fallback" kuralları içerir.
-- Uygulamanın özel renk paleti (`chat-dark`, `chat-light` vb.) burada tanımlıdır.
+---
 
-## 🛠️ Temizlik ve Optimizasyon
-Projenin son halinden şu gereksiz parçalar temizlenmiştir:
-- Kullanılmayan default Vite assetleri (`react.svg`, `App.css`).
-- Proje akışında kullanılmayan yedek/taslak Hook dosyaları (`useAuth`, `useRooms` vb.).
-- Bileşen içi uygulamalarla yer değiştirmiş genel modal ve yükleme butonları.
+## 📁 Proje Klasör Yapısı
 
-**ChatZUO**, hem temiz kod yapısı hem de premium tasarımıyla kullanıcılarına üst düzey bir deneyim sunmayı amaçlar. 🚀
+```text
+src/
+├── components/      # Atomik ve yeniden kullanılabilir bileşenler (Chat, Room, Common)
+├── context/         # Global state (Tema, Kullanıcı durumu)
+├── pages/           # Ana sayfa yapıları (Auth, ChatRoom, RoomList, Profile)
+├── services/        # Veri akışı (Mock API servisleri)
+├── assets/          # (Opsiyonel) Yerel varlıklar
+└── index.css        # Tailwind v4 konfigürasyonları ve global stiller
+```
+
+---
+
+## 🏢 SaaS ve Gelecek Vizyonu
+
+ChatUZO sadece bir chat platformu değil, aynı zamanda bir **SaaS (Software as a Service)** ürünü olarak planlanmaktadır:
+
+1.  **Iframe Widget Entegrasyonu**: İşletmelerin kendi web sitelerine sadece bir `<script>` etiketi ekleyerek ChatUZO'yu dahil edebilmesi.
+2.  **Real-Time Backend**: Express, TypeScript ve Socket.io kullanılarak anlık veri iletişimi.
+3.  **Persistance**: PostgreSQL (Neon.tech / Supabase) entegrasyonu ile kalıcı veri depolama.
+4.  **Admin Paneli**: Oda istatistikleri ve kullanıcı moderasyonu için gelişmiş yönetim ekranı.
+
+---
+
+## � Başlangıç
+
+Projeyi yerel makinenizde çalıştırmak için:
+
+```bash
+# 1. Repoyu klonlayın
+git clone [repo-linki]
+
+# 2. Bağımlılıkları yükleyin
+npm install
+
+# 3. Geliştirme sunucusunu başlatın
+npm run dev
+```
+
+---
+
+## 👤 Geliştirici
+Bu proje modern web standartları ve temiz kod (Clean Code) prensipleri takip edilerek geliştirilmiştir. Gereksiz importlar (`React` vb.) temizlenmiş, performans optimizasyonları yapılmıştır.

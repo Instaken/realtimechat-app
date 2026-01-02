@@ -1,10 +1,13 @@
+import flowbite from "flowbite-react/plugin/tailwindcss";
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
+    "node_modules/flowbite-react/dist/**/*.js",
   ],
-  darkMode: 'selector', // Enable class-based dark mode
+  darkMode: 'selector',
   theme: {
     extend: {
       colors: {
@@ -14,5 +17,7 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    flowbite,
+  ],
 }
