@@ -1,13 +1,18 @@
 import { MoreVertical } from 'lucide-react';
 import UserAvatar from '../common/UserAvatar';
+import { useTheme } from '../../context/ThemeContext';
 
 /**
  * Single Message Component
  * Displays a chat message with avatar, username, timestamp and content
  */
 const Message = ({ message, isCurrentUser, showAvatar, uiSettings }) => {
+    const { theme } = useTheme();
     const bubbleStyle = uiSettings?.bubbleStyle || 'rounded';
     const primaryColor = uiSettings?.primaryColor || '#6366f1';
+    
+    // Username için daha belirgin bir renk - koyu cyan/teal
+    const usernameColor = '#0891b2'; // cyan-600 - hem light hem dark'ta okunaklı
 
     const isMedia = message.type === 'image' || message.type === 'gif';
 
@@ -64,10 +69,11 @@ const Message = ({ message, isCurrentUser, showAvatar, uiSettings }) => {
     const fontFamily = uiSettings?.fontSettings?.family ? `'${uiSettings.fontSettings.family}', sans-serif` : 'inherit';
     const fontWeight = weightMap[uiSettings?.fontSettings?.weight] || 500;
 
-    const isLightTheme = uiSettings?.theme === 'light';
-    const usernameColorClass = isLightTheme ? 'text-slate-900' : 'text-white';
-    const bubbleBgClass = isLightTheme ? 'bg-slate-200/80 border-slate-200' : 'bg-white/10 dark:bg-white/10 border-white/10';
-    const bubbleTextColorClass = isLightTheme ? 'text-slate-800' : 'text-white/90';
+    const isLightTheme = theme === 'light';
+    // Username her zaman primaryColor ile göster - daha okunaklı ve belirgin
+    const usernameColorClass = 'font-semibold';
+    const bubbleBgClass = isLightTheme ? 'bg-white border-gray-200' : 'bg-[#2a3942] border-gray-600';
+    const bubbleTextColorClass = isLightTheme ? 'text-slate-900' : 'text-white';
 
     return (
         <div className={`flex gap-4 group ${isCurrentUser ? 'flex-row-reverse text-right' : ''}`}>
@@ -86,7 +92,10 @@ const Message = ({ message, isCurrentUser, showAvatar, uiSettings }) => {
                 {/* Header */}
                 {/* Header - Always show username/time as requested */}
                 <div className={`flex items-baseline gap-2 mb-1 ${isCurrentUser ? 'flex-row-reverse' : ''}`}>
-                    <span className={`font-bold hover:underline cursor-pointer text-sm ${usernameColorClass}`} style={{ fontFamily }}>
+                    <span 
+                        className={`font-bold hover:underline cursor-pointer text-sm ${usernameColorClass}`} 
+                        style={{ fontFamily, color: usernameColor }}
+                    >
                         {message.sender?.username || 'Unknown'}
                     </span>
                     <span className="text-[10px] text-chat-light/50">

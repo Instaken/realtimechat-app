@@ -316,8 +316,8 @@ const EditRoomModal = ({ room, onClose, onUpdate }) => {
                                     })}
                                     className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-indigo-500"
                                 >
-                                    <option value="dark">Dark</option>
-                                    <option value="light">Light</option>
+                                    <option value="dark" className="text-gray-900 bg-white">Dark</option>
+                                    <option value="light" className="text-gray-900 bg-white">Light</option>
                                 </select>
                             </div>
 
@@ -360,9 +360,9 @@ const EditRoomModal = ({ room, onClose, onUpdate }) => {
                                     })}
                                     className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-indigo-500"
                                 >
-                                    <option value="color">Solid Color</option>
-                                    <option value="gradient">Gradient</option>
-                                    <option value="image">Image URL</option>
+                                    <option value="color" className="text-gray-900 bg-white">Solid Color</option>
+                                    <option value="gradient" className="text-gray-900 bg-white">Gradient</option>
+                                    <option value="image" className="text-gray-900 bg-white">Image URL</option>
                                 </select>
                             </div>
 
@@ -410,10 +410,10 @@ const EditRoomModal = ({ room, onClose, onUpdate }) => {
                                         })}
                                         className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-indigo-500"
                                     >
-                                        <option value="Inter">Inter</option>
-                                        <option value="Roboto">Roboto</option>
-                                        <option value="Arial">Arial</option>
-                                        <option value="monospace">Monospace</option>
+                                        <option value="Inter" className="text-gray-900 bg-white">Inter</option>
+                                        <option value="Roboto" className="text-gray-900 bg-white">Roboto</option>
+                                        <option value="Arial" className="text-gray-900 bg-white">Arial</option>
+                                        <option value="monospace" className="text-gray-900 bg-white">Monospace</option>
                                     </select>
                                 </div>
                                 <div>
@@ -446,9 +446,9 @@ const EditRoomModal = ({ room, onClose, onUpdate }) => {
                                         })}
                                         className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-indigo-500"
                                     >
-                                        <option value="light">Light</option>
-                                        <option value="medium">Medium</option>
-                                        <option value="bold">Bold</option>
+                                        <option value="light" className="text-gray-900 bg-white">Light</option>
+                                        <option value="medium" className="text-gray-900 bg-white">Medium</option>
+                                        <option value="bold" className="text-gray-900 bg-white">Bold</option>
                                     </select>
                                 </div>
                             </div>

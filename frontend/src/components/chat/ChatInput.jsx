@@ -1,7 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { Send, Image as ImageIcon, FileImage } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 
 const ChatInput = ({ onSendMessage, onTyping, roomSlug, uiSettings, currentUser, participants = [] }) => {
+    const { theme } = useTheme();
     const [message, setMessage] = useState('');
     const [showGifInput, setShowGifInput] = useState(false);
     const [gifUrl, setGifUrl] = useState('');
@@ -50,7 +52,7 @@ const ChatInput = ({ onSendMessage, onTyping, roomSlug, uiSettings, currentUser,
         setShowGifInput(false);
     };
 
-    const isLightTheme = uiSettings?.theme === 'light';
+    const isLightTheme = theme === 'light';
     const textColorClass = isLightTheme ? 'text-slate-900' : 'text-white';
     const subTextColorClass = isLightTheme ? 'text-slate-400' : 'text-white/30';
 
@@ -58,7 +60,7 @@ const ChatInput = ({ onSendMessage, onTyping, roomSlug, uiSettings, currentUser,
         <div className="p-4 px-6 mb-2">
             {/* GIF Input Modal */}
             {showGifInput && (
-                <div className={`mb-3 backdrop-blur-lg p-4 rounded-xl border ${isLightTheme ? 'bg-white/90 border-slate-200 shadow-xl' : 'bg-white/10 dark:bg-white/5 border-white/10'}`}>
+                <div className={`mb-3 backdrop-blur-lg p-4 rounded-xl border ${isLightTheme ? 'bg-white border-slate-300 shadow-xl' : 'bg-white/25 dark:bg-white/25 border-white/30'}`}>
                     <div className="flex items-center gap-2 mb-2">
                         <FileImage size={20} style={{ color: primaryColor }} />
                         <h4 className={`font-semibold ${isLightTheme ? 'text-slate-900' : 'text-white'}`}>Add GIF</h4>
@@ -93,7 +95,7 @@ const ChatInput = ({ onSendMessage, onTyping, roomSlug, uiSettings, currentUser,
                 </div>
             )}
 
-            <div className={`backdrop-blur-md p-2 rounded-xl border transition-colors shadow-lg ${isLightTheme ? 'bg-white/90 border-slate-200' : 'bg-white/10 dark:bg-white/5 border-white/10'}`}>
+            <div className={`backdrop-blur-md p-2 rounded-xl border transition-colors shadow-lg ${isLightTheme ? 'bg-white border-slate-300' : 'bg-white/25 dark:bg-white/25 border-white/30'}`}>
                 <form onSubmit={handleSubmit} className="flex items-end gap-2">
                     {/* Image Upload Button */}
                     <input

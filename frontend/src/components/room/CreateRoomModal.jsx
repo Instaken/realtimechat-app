@@ -521,13 +521,13 @@ const CreateRoomModal = ({ isOpen, onClose, onCreateRoom, editingRoom }) => {
                                             <select
                                                 value={formData.uiSettings.fontSettings.family}
                                                 onChange={(e) => handleFontChange('family', e.target.value)}
-                                                className="w-full bg-chat-grey/10 border-0 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:ring-1 focus:ring-chat-light"
+                                                className="w-full bg-chat-grey/10 border-0 rounded-lg px-3 py-2 text-sm text-gray-900 focus:ring-1 focus:ring-chat-light"
                                             >
-                                                <option value="Inter">Inter (Default)</option>
-                                                <option value="Outfit">Outfit (Rounder)</option>
-                                                <option value="Roboto">Roboto (Clean)</option>
-                                                <option value="Montserrat">Montserrat (Bold)</option>
-                                                <option value="Playfair Display">Playfair (Elegant)</option>
+                                                <option value="Inter" className="text-gray-900 bg-white">Inter (Default)</option>
+                                                <option value="Outfit" className="text-gray-900 bg-white">Outfit (Rounder)</option>
+                                                <option value="Roboto" className="text-gray-900 bg-white">Roboto (Clean)</option>
+                                                <option value="Montserrat" className="text-gray-900 bg-white">Montserrat (Bold)</option>
+                                                <option value="Playfair Display" className="text-gray-900 bg-white">Playfair (Elegant)</option>
                                             </select>
                                         </div>
 
