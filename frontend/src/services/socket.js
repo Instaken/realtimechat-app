@@ -77,13 +77,21 @@ class SocketService {
     }
 
     // Messaging actions
-    sendMessage(roomId, content) {
+    sendMessage(roomId, content, type = 'text', attachmentUrl = null) {
         if (!this.socket) return;
-        console.log('📤 [sendMessage] Sending message:', { roomId, content });
+        const payload = { roomId, content };
+        
+        // Eğer resim veya GIF ise type ve attachment_url ekle
+        if (type !== 'text') {
+            payload.type = type;
+            payload.attachment_url = attachmentUrl;
+        }
+        
+        console.log('📤 [sendMessage] Sending message:', payload);
         console.log('📤 [sendMessage] Socket connected:', this.socket.connected);
         
         return new Promise((resolve, reject) => {
-            this.socket.emit('send_message', { roomId, content }, (response) => {
+            this.socket.emit('send_message', payload, (response) => {
                 console.log('📥 [sendMessage] Response:', response);
                 if (response?.ok) {
                     resolve(response.messageId);

@@ -14,18 +14,20 @@ const Message = ({ message, isCurrentUser, showAvatar, uiSettings }) => {
     // Username için daha belirgin bir renk - koyu cyan/teal
     const usernameColor = '#0891b2'; // cyan-600 - hem light hem dark'ta okunaklı
 
-    const isMedia = message.type === 'image' || message.type === 'gif';
+    const messageType = message.type?.toLowerCase();
+    const attachmentUrl = message.attachment_url || message.attachmentUrl;
+    const isMedia = messageType === 'image' || messageType === 'gif';
 
     const renderContent = () => {
         // Image message
-        if (message.type === 'image' && message.attachment_url) {
+        if (messageType === 'image' && attachmentUrl) {
             return (
                 <div className="max-w-md">
                     <img
-                        src={message.attachment_url}
+                        src={attachmentUrl}
                         alt="Uploaded"
                         className="rounded-lg max-h-96 object-contain cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => window.open(message.attachment_url, '_blank')}
+                        onClick={() => window.open(attachmentUrl, '_blank')}
                     />
                     {message.content && message.content !== '[Image]' && (
                         <p className="mt-2 text-sm">{message.content}</p>
@@ -35,14 +37,14 @@ const Message = ({ message, isCurrentUser, showAvatar, uiSettings }) => {
         }
 
         // GIF message
-        if (message.type === 'gif' && message.attachment_url) {
+        if (messageType === 'gif' && attachmentUrl) {
             return (
                 <div className="max-w-md">
                     <img
-                        src={message.attachment_url}
+                        src={attachmentUrl}
                         alt="GIF"
                         className="rounded-lg max-h-96 object-contain cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => window.open(message.attachment_url, '_blank')}
+                        onClick={() => window.open(attachmentUrl, '_blank')}
                     />
                 </div>
             );

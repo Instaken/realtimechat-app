@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Send, Image as ImageIcon, FileImage } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
-const ChatInput = ({ onSendMessage, onTyping, roomSlug, uiSettings, currentUser, participants = [] }) => {
+const ChatInput = ({ onSendMessage, onTyping, roomSlug, uiSettings, currentUser, participants = [], room }) => {
     const { theme } = useTheme();
     const [message, setMessage] = useState('');
     const [showGifInput, setShowGifInput] = useState(false);
@@ -115,16 +115,18 @@ const ChatInput = ({ onSendMessage, onTyping, roomSlug, uiSettings, currentUser,
                         <ImageIcon size={20} />
                     </button>
 
-                    {/* GIF Button */}
-                    <button
-                        type="button"
-                        onClick={() => setShowGifInput(!showGifInput)}
-                        disabled={isMuted}
-                        className={`p-2 rounded-lg transition-colors ${isMuted ? 'opacity-30 cursor-not-allowed' : ''} ${isLightTheme ? 'text-slate-400 hover:text-slate-900 hover:bg-slate-100' : 'text-white/50 hover:text-white hover:bg-white/10'}`}
-                        title={isMuted ? "Sessize alındığınız için GIF gönderemezsiniz" : "Add GIF"}
-                    >
-                        <FileImage size={20} />
-                    </button>
+                    {/* GIF Button - Only show if allowGifs is true */}
+                    {room?.logicConfig?.allowGifs !== false && (
+                        <button
+                            type="button"
+                            onClick={() => setShowGifInput(!showGifInput)}
+                            disabled={isMuted}
+                            className={`p-2 rounded-lg transition-colors ${isMuted ? 'opacity-30 cursor-not-allowed' : ''} ${isLightTheme ? 'text-slate-400 hover:text-slate-900 hover:bg-slate-100' : 'text-white/50 hover:text-white hover:bg-white/10'}`}
+                            title={isMuted ? "Sessize alındığınız için GIF gönderemezsiniz" : "Add GIF"}
+                        >
+                            <FileImage size={20} />
+                        </button>
+                    )}
 
                     <div className="flex-1 min-w-0">
                         <input

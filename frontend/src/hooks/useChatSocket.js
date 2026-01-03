@@ -306,9 +306,9 @@ export const useChatSocket = (roomId, room, participants = []) => {
         };
     }, [roomId, room, participants]); // Added participants to dependency array
 
-    const handleSendMessage = async (content) => {
+    const handleSendMessage = async (content, type = 'text', attachmentUrl = null) => {
         try {
-            await socketService.sendMessage(roomId, content);
+            await socketService.sendMessage(roomId, content, type, attachmentUrl);
         } catch (error) {
             console.error("Failed to send message", error);
         }

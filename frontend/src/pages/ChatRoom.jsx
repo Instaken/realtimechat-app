@@ -200,6 +200,7 @@ const ChatRoom = () => {
                     uiSettings={uiSettings}
                     currentUser={currentUser}
                     participants={participants}
+                    room={room}
                 />
             </div>
 
