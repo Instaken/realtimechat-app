@@ -1,9 +1,9 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { LogOut, MessageSquare, Moon, Sun } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '../../context/ThemeContext';
 import Avatar from 'boring-avatars';
 
-import { useSocket } from '../context/SocketContext';
+import { useSocket } from '../../context/SocketContext';
 import { useEffect } from 'react';
 
 const Layout = () => {

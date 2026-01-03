@@ -1,12 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Hash, Users, X } from 'lucide-react';
 import { roomService } from '../services/api';
-import { socketService } from '../services/socket';
 import ChatSidebar from '../components/chat/ChatSidebar';
 import MessageList from '../components/chat/MessageList';
 import ChatInput from '../components/chat/ChatInput';
+import ChatHeader from '../components/chat/ChatHeader';
 import { PageLoader } from '../components/common/Loading';
+import { useChatSocket } from '../hooks/useChatSocket';
 
 /**
  * Chat Room Page
@@ -16,18 +16,12 @@ const ChatRoom = () => {
     const { roomId } = useParams(); // This is the ID or Slug
     const navigate = useNavigate();
 
-    // Local state for socket events
-    const [typingUsers, setTypingUsers] = useState([]);
-    const [onlineUsers, setOnlineUsers] = useState([]);
-
     const [currentUser, setCurrentUser] = useState(null);
     const [room, setRoom] = useState(null);
-    const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showSidebar, setShowSidebar] = useState(true);
-    const typingTimeoutRef = useRef(null);
 
-    // Initial Load
+    // Initial Load User
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem('chat_user') || '{}');
         const token = localStorage.getItem('chat_token');
@@ -36,171 +30,68 @@ const ChatRoom = () => {
             navigate('/auth');
             return;
         }
-
         setCurrentUser(user);
-        loadRoomData();
+    }, [navigate]);
 
-        // Socket logic 
-        // Note: Connection is handled in Layout.jsx globally, but we ensure room joining here.
-        // If we navigated directly here, Layout useEffect runs too.
+    // Load Room Data
+    useEffect(() => {
+        if (!currentUser) return;
 
-        const join = async () => {
+        const loadRoomData = async () => {
             try {
-                await socketService.joinRoom(roomId);
-            } catch (err) {
-                console.error("Failed to join room:", err);
-            }
-        };
-        join();
-
-        socketService.onReceiveMessage((newMsg) => {
-            // Check if message belongs to this room (server broadcasts to room, so it should be)
-            if (newMsg.roomId === roomId || newMsg.room_id === roomId) {
-                // Ensure we don't duplicate if we did optimistic update (though unique ID check is better)
-                setMessages(prev => {
-                    if (prev.some(m => m.id === newMsg.id)) return prev;
-                    return [...prev, newMsg];
-                });
-            }
-        });
-
-        socketService.onUserJoined((data) => {
-            console.log("User joined:", data);
-            setOnlineUsers(prev => {
-                if (prev.some(u => u.userId === data.userId || u.id === data.userId)) return prev;
-                // Normalize user object
-                const newUser = {
-                    userId: data.userId || data.user?.id,
-                    username: data.username || data.user?.username,
-                    socketId: data.socketId
-                };
-                return [...prev, newUser];
-            });
-        });
-
-        socketService.onUserLeft((data) => {
-            console.log("User left:", data);
-            setOnlineUsers(prev => prev.filter(u => u.userId !== data.userId && u.socketId !== data.socketId));
-        });
-
-        socketService.onOnlineUsers((users) => {
-            console.log("Online users sync:", users);
-            // Ensure robust mapping
-            const mappedUsers = users.map(u => ({
-                userId: u.userId || u.id,
-                username: u.username,
-                socketId: u.socketId
-            }));
-            setOnlineUsers(mappedUsers);
-        });
-
-        socketService.onUserTyping((data) => {
-            console.log("Typing event received:", data);
-            // Robust check: match either the slug (roomId) or the numeric ID (room.id)
-            const targetRoomId = String(data.roomId);
-            const currentRoomSlug = String(roomId);
-            const currentRoomId = room ? String(room.id) : null;
-
-            if (targetRoomId !== currentRoomSlug && targetRoomId !== currentRoomId) return;
-
-            const username = data.username || data.user?.username;
-            if (!username) return;
-
-            setTypingUsers(prev => {
-                if (!prev.includes(username)) {
-                    return [...prev, username];
+                setLoading(true);
+                let roomData;
+                try {
+                    roomData = await roomService.getRoomBySlug(roomId);
+                } catch {
+                    roomData = await roomService.getRoomById(roomId);
                 }
-                return prev;
+                setRoom(roomData);
+
+                // Fetch history from DB
+                try {
+                    const msgs = await roomService.getRoomMessages(roomId);
+                    // We need to set initial messages in the hook or simple state? 
+                    // The hook manages 'messages' state. We can expose setMessages from hook.
+                    // WAITING for hook initialization below.
+                    setInitialMessages(msgs);
+                } catch (err) {
+                    console.error("Failed to load messages", err);
+                }
+            } catch (error) {
+                console.error("Error loading chat", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadRoomData();
+    }, [roomId, currentUser]);
+
+    // We store initial messages here to pass to hook or update hook state
+    const [initialMessages, setInitialMessages] = useState([]);
+
+    // Custom Hook for Socket Logic
+    const {
+        messages,
+        setMessages,
+        onlineUsers,
+        typingUsers,
+        sendMessage,
+        handleTyping
+    } = useChatSocket(roomId, room);
+
+    // Sync initial DB messages with Hook state when loaded
+    useEffect(() => {
+        if (initialMessages.length > 0) {
+            setMessages(prev => {
+                // Avoid overwriting if socket already added real-time messages
+                if (prev.length > 0) return prev;
+                return initialMessages;
             });
-        });
-
-        socketService.onUserStoppedTyping((data) => {
-            // Robust check
-            const targetRoomId = String(data.roomId);
-            const currentRoomSlug = String(roomId);
-            const currentRoomId = room ? String(room.id) : null;
-
-            if (targetRoomId !== currentRoomSlug && targetRoomId !== currentRoomId) return;
-
-            const username = data.username || data.user?.username;
-            if (!username) return;
-
-            setTypingUsers(prev => prev.filter(u => u !== username));
-        });
-
-        return () => {
-            socketService.leaveRoom(roomId);
-            socketService.off('receive_message');
-            socketService.off('user_joined');
-            socketService.off('user_left');
-            socketService.off('online_users');
-            socketService.off('user_typing');
-            socketService.off('user_stopped_typing');
-        };
-    }, [roomId, navigate]);
-
-
-
-    const loadRoomData = async () => {
-        try {
-            setLoading(true);
-            let roomData;
-            try {
-                roomData = await roomService.getRoomBySlug(roomId);
-            } catch {
-                roomData = await roomService.getRoomById(roomId);
-            }
-            setRoom(roomData);
-
-            // Fetch history from DB
-            try {
-                const msgs = await roomService.getRoomMessages(roomId);
-                setMessages(msgs);
-            } catch (err) {
-                console.error("Failed to load messages", err);
-                setMessages([]);
-            }
-        } catch (error) {
-            console.error("Error loading chat", error);
-        } finally {
-            setLoading(false);
         }
-    };
+    }, [initialMessages, setMessages]);
 
-    const handleSendMessage = async (content, type = 'text', attachmentUrl = null) => {
-        // Optimistic update (optional) - for now rely on server echo to keep it simple and sync
-        // But to make it feel fast:
-        /*
-        const tempId = Date.now();
-        const optimisticMsg = {
-            id: tempId,
-            roomId: roomId,
-            userId: currentUser.id,
-            content: content,
-            sender: currentUser,
-            createdAt: new Date().toISOString()
-        };
-        setMessages(prev => [...prev, optimisticMsg]);
-        */
-
-        try {
-            await socketService.sendMessage(roomId, content);
-            // Server broadcasts the message back, which will be caught by onReceiveMessage
-        } catch (error) {
-            console.error("Failed to send message", error);
-            // Mark as failed in UI if needed
-        }
-    };
-
-    const handleTyping = () => {
-        socketService.startTyping(roomId);
-
-        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-
-        typingTimeoutRef.current = setTimeout(() => {
-            socketService.stopTyping(roomId);
-        }, 3000);
-    };
 
     if (loading || !currentUser) {
         return <PageLoader />;
@@ -227,7 +118,6 @@ const ChatRoom = () => {
 
     const { fontSettings = { family: 'Inter', baseSize: 14, weight: 'medium' } } = uiSettings;
     const isLightTheme = uiSettings.theme === 'light';
-    const textColorClass = isLightTheme ? 'text-slate-900' : 'text-white';
     const subTextColorClass = isLightTheme ? 'text-slate-600' : 'text-chat-light';
 
     return (
@@ -279,7 +169,7 @@ const ChatRoom = () => {
                 </div>
 
                 <ChatInput
-                    onSendMessage={handleSendMessage}
+                    onSendMessage={sendMessage}
                     onTyping={handleTyping}
                     roomSlug={room.slug}
                     uiSettings={uiSettings}
@@ -296,40 +186,5 @@ const ChatRoom = () => {
         </div>
     );
 };
-
-const ChatHeader = ({ room, uiSettings, showSidebar, onToggleSidebar, isLightTheme }) => (
-    <div
-        className={`h-16 border-b border-chat-grey/30 flex items-center justify-between px-6 backdrop-blur ${isLightTheme ? 'bg-white/80' : 'bg-white/10 dark:bg-chat-dark/30'}`}
-        style={{ borderBottomColor: uiSettings?.primaryColor }}
-    >
-        <div className="flex items-center gap-3">
-            <Hash size={24} style={{ color: uiSettings?.primaryColor || '#6366f1' }} />
-            <div>
-                <h2 className={`font-bold leading-none ${isLightTheme ? 'text-slate-900' : 'text-white'}`}>
-                    {room.name}
-                </h2>
-                <div className="flex items-center gap-2 mt-1">
-                    <span className={`text-[10px] ${isLightTheme ? 'bg-slate-200 text-slate-600' : 'bg-chat-grey/20 text-chat-light'} px-1.5 py-0.5 rounded uppercase font-bold tracking-tighter`}>
-                        #{room.slug}
-                    </span>
-                    <span className="w-1 h-1 rounded-full bg-green-500 animate-pulse"></span>
-                    <span className={`text-[10px] font-medium ${isLightTheme ? 'text-slate-400' : 'text-chat-light/50'}`}>LIVE</span>
-                </div>
-            </div>
-        </div>
-
-        <div className={`flex items-center gap-2 ${isLightTheme ? 'text-slate-600' : 'text-chat-light'}`}>
-            <button
-                onClick={onToggleSidebar}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors group ${isLightTheme ? 'hover:bg-slate-100' : 'hover:bg-chat-grey/20'}`}
-            >
-                {showSidebar ? <X size={20} /> : <Users size={20} className="group-hover:scale-110 transition-transform" />}
-                <span className="hidden md:inline text-xs font-bold uppercase tracking-widest">
-                    {showSidebar ? 'Hide Details' : 'Details'}
-                </span>
-            </button>
-        </div>
-    </div>
-);
 
 export default ChatRoom;

@@ -1,13 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { SocketProvider } from './context/SocketContext';
-import Layout from './components/Layout';
+import Layout from './components/layout/Layout';
 // Lazy load pages
 import Auth from './pages/Auth';
 import RoomList from './pages/RoomList';
 import ChatRoom from './pages/ChatRoom';
 import Profile from './pages/Profile';
-import EmbedChat from './pages/EmbedChat';
+
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
@@ -28,7 +28,7 @@ function App() {
             <Route path="/auth" element={<Navigate to="/login" replace />} />
 
             {/* Embed Route - Accessable without Layout or standard ProtectedRoute (handles own guest auth) */}
-            <Route path="/embed/chat/:roomId" element={<EmbedChat />} />
+
 
             <Route path="/app" element={
               <ProtectedRoute>
