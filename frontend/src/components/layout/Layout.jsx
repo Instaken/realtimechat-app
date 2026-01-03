@@ -15,13 +15,15 @@ const Layout = () => {
     // Connect to socket when layout mounts (user is authenticated)
     useEffect(() => {
         const token = localStorage.getItem('chat_token');
-        if (token && currentUser.id) {
+        if (token && currentUser.id && socketService) {
             socketService.connect(token);
         }
     }, [currentUser.id, socketService]);
 
     const handleLogout = () => {
-        socketService.disconnect();
+        if (socketService) {
+            socketService.disconnect();
+        }
         localStorage.removeItem('chat_user');
         localStorage.removeItem('chat_token');
         navigate('/login');

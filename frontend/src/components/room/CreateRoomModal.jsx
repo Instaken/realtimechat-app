@@ -12,7 +12,6 @@ const CreateRoomModal = ({ isOpen, onClose, onCreateRoom, editingRoom }) => {
         slug: '',
         isPrivate: false,
         password: '',
-        maxUsers: 50,
         allowedDomains: [],
         roomPlanId: '',
         uiSettings: {
@@ -85,7 +84,6 @@ const CreateRoomModal = ({ isOpen, onClose, onCreateRoom, editingRoom }) => {
                 slug: editingRoom.slug || '',
                 isPrivate: editingRoom.isPrivate || false,
                 password: '',
-                maxUsers: editingRoom.maxUsers || 50,
                 allowedDomains: editingRoom.allowedDomains || [],
                 roomPlanId: editingRoom.roomPlanId || '',
                 uiSettings: {
@@ -184,7 +182,6 @@ const CreateRoomModal = ({ isOpen, onClose, onCreateRoom, editingRoom }) => {
             // Prepare data for backend requirements
             const finalData = {
                 ...formData,
-                maxUsers: parseInt(formData.maxUsers, 10),
                 allowedDomains: formData.allowedDomains.length > 0
                     ? formData.allowedDomains
                     : [window.location.origin]
@@ -419,7 +416,7 @@ const CreateRoomModal = ({ isOpen, onClose, onCreateRoom, editingRoom }) => {
                                                     <button
                                                         key={plan.id}
                                                         type="button"
-                                                        onClick={() => setFormData(prev => ({ ...prev, roomPlanId: plan.id, maxUsers: Math.min(prev.maxUsers, plan.maxUsers) }))}
+                                                        onClick={() => setFormData(prev => ({ ...prev, roomPlanId: plan.id }))}
                                                         className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${formData.roomPlanId === plan.id
                                                             ? 'border-chat-light bg-chat-light/5'
                                                             : 'border-chat-grey/20 bg-white dark:bg-chat-dark/30 hover:border-chat-grey/50'
@@ -440,21 +437,6 @@ const CreateRoomModal = ({ isOpen, onClose, onCreateRoom, editingRoom }) => {
                                                 No room plans found in the system. Please contact the administrator.
                                             </div>
                                         )}
-                                    </FormGroup>
-
-                                    <FormGroup label="Max Participants">
-                                        <div className="relative">
-                                            <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-chat-grey" size={18} />
-                                            <input
-                                                type="number"
-                                                name="maxUsers"
-                                                value={formData.maxUsers}
-                                                onChange={handleChange}
-                                                min="2"
-                                                max={plans.find(p => p.id === formData.roomPlanId)?.maxUsers || 500}
-                                                className="form-input"
-                                            />
-                                        </div>
                                     </FormGroup>
                                 </div>
                             </div>

@@ -109,6 +109,33 @@ export const roomService = {
     getRoomMessages: async (roomId) => {
         const response = await api.get(`/rooms/${roomId}/messages`);
         return response.data.messages || [];
+    },
+    getRoomParticipants: async (roomId) => {
+        const response = await api.get(`/rooms/${roomId}/participants`);
+        return response.data;
+    },
+    setModeratorStatus: async (roomId, participantId, isModerator) => {
+        const response = await api.patch(`/rooms/${roomId}/moderator`, {
+            participantId,
+            isModerator
+        });
+        return response.data;
+    },
+    muteParticipant: async (roomId, userId) => {
+        const response = await api.patch(`/rooms/${roomId}/participants/${userId}/mute`);
+        return response.data;
+    },
+    unmuteParticipant: async (roomId, userId) => {
+        const response = await api.patch(`/rooms/${roomId}/participants/${userId}/unmute`);
+        return response.data;
+    },
+    banParticipant: async (roomId, userId) => {
+        const response = await api.patch(`/rooms/${roomId}/participants/${userId}/ban`);
+        return response.data;
+    },
+    unbanParticipant: async (roomId, userId) => {
+        const response = await api.patch(`/rooms/${roomId}/participants/${userId}/unban`);
+        return response.data;
     }
 };
 

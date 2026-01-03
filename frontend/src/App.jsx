@@ -7,6 +7,7 @@ import Auth from './pages/Auth';
 import RoomList from './pages/RoomList';
 import ChatRoom from './pages/ChatRoom';
 import Profile from './pages/Profile';
+import Embed from './pages/Embed';
 
 
 // Protected Route Wrapper
@@ -27,8 +28,8 @@ function App() {
             <Route path="/login" element={<Auth />} />
             <Route path="/auth" element={<Navigate to="/login" replace />} />
 
-            {/* Embed Route - Accessable without Layout or standard ProtectedRoute (handles own guest auth) */}
-
+            {/* Embed Route - Accessible without Layout or standard ProtectedRoute (handles own guest auth) */}
+            <Route path="/embed/:apiKey" element={<Embed />} />
 
             <Route path="/app" element={
               <ProtectedRoute>

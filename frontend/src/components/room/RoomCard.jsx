@@ -12,6 +12,18 @@ const RoomCard = ({ room, currentUserId, onDelete, onEdit }) => {
     const ownerId = room.ownerId || room.owner_id || room.owner?.id;
     const isOwner = !!currentUserId && !!ownerId && String(ownerId) === String(currentUserId);
 
+    // Debug logging
+    console.log('🔍 RoomCard Debug:', {
+        roomName: room.name,
+        currentUserId,
+        ownerId,
+        isOwner,
+        'room.ownerId': room.ownerId,
+        'room.owner_id': room.owner_id,
+        'room.owner': room.owner,
+        'Full room object': room
+    });
+
     // Use primaryColor from uiSettings if available, or default blue
     const primaryColor = room.uiSettings?.primaryColor || '#6366f1';
 

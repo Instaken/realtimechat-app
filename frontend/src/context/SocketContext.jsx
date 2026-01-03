@@ -1,33 +1,44 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { socketService } from '../services/socket';
 
-const SocketContext = createContext();
+const SocketContext = createContext({
+    socketService: null,
+    isConnected: false
+});
 
 export const useSocket = () => {
-    return useContext(SocketContext);
+    const context = useContext(SocketContext);
+    if (!context) {
+        throw new Error('useSocket must be used within SocketProvider');
+    }
+    return context;
 };
 
 export const SocketProvider = ({ children }) => {
     const [isConnected, setIsConnected] = useState(false);
 
     useEffect(() => {
+        // Connect socket on mount if user is authenticated
+        const token = localStorage.getItem('chat_token');
+        if (token && !socketService.socket?.connected) {
+            console.log('🔌 Connecting socket with token...');
+            socketService.connect(token);
+        }
+
         const onConnect = () => setIsConnected(true);
         const onDisconnect = () => setIsConnected(false);
 
-        // We can attach listeners directly to the socket instance if it exists,
-        // but socketService abstracts this. 
-        // We'll need to check if socket is already initialized in service.
-        /* 
-           Since socketService.socket might be null initially, we rely on the service 
-           to handle connection. But we want to reflect state here.
-           The service doesn't currently emit events to us.
-           We might need to add a simple listener mechanism to SocketService 
-           or just trust the logs for now and add state listeners later if needed.
-           For now, we'll just expose the service.
-        */
+        // Listen to socket connection events if socket exists
+        if (socketService.socket) {
+            socketService.socket.on('connect', onConnect);
+            socketService.socket.on('disconnect', onDisconnect);
+        }
 
         return () => {
-            // cleanup if needed
+            if (socketService.socket) {
+                socketService.socket.off('connect', onConnect);
+                socketService.socket.off('disconnect', onDisconnect);
+            }
         };
     }, []);
 

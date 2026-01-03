@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Send, Image as ImageIcon, FileImage } from 'lucide-react';
 
-const ChatInput = ({ onSendMessage, onTyping, roomSlug, uiSettings }) => {
+const ChatInput = ({ onSendMessage, onTyping, roomSlug, uiSettings, currentUser, participants = [] }) => {
     const [message, setMessage] = useState('');
     const [showGifInput, setShowGifInput] = useState(false);
     const [gifUrl, setGifUrl] = useState('');
@@ -12,14 +12,19 @@ const ChatInput = ({ onSendMessage, onTyping, roomSlug, uiSettings }) => {
     const font = uiSettings?.fontSettings || { family: 'Inter' };
     const fontFamily = font.family ? `'${font.family}', sans-serif` : 'inherit';
 
+    // Check if current user is muted
+    const currentUserParticipant = participants.find(p => String(p.user?.id) === String(currentUser?.id));
+    const isMuted = currentUserParticipant?.status === 'MUTED';
+
     const handleMessageChange = (e) => {
+        if (isMuted) return; // Prevent typing if muted
         setMessage(e.target.value);
         if (onTyping) onTyping();
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!message.trim()) return;
+        if (!message.trim() || isMuted) return;
 
         onSendMessage(message);
         setMessage('');
@@ -101,8 +106,9 @@ const ChatInput = ({ onSendMessage, onTyping, roomSlug, uiSettings }) => {
                     <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className={`p-2 rounded-lg transition-colors ${isLightTheme ? 'text-slate-400 hover:text-slate-900 hover:bg-slate-100' : 'text-white/50 hover:text-white hover:bg-white/10'}`}
-                        title="Upload Image"
+                        disabled={isMuted}
+                        className={`p-2 rounded-lg transition-colors ${isMuted ? 'opacity-30 cursor-not-allowed' : ''} ${isLightTheme ? 'text-slate-400 hover:text-slate-900 hover:bg-slate-100' : 'text-white/50 hover:text-white hover:bg-white/10'}`}
+                        title={isMuted ? "Sessize alındığınız için resim yükleyemezsiniz" : "Upload Image"}
                     >
                         <ImageIcon size={20} />
                     </button>
@@ -111,8 +117,9 @@ const ChatInput = ({ onSendMessage, onTyping, roomSlug, uiSettings }) => {
                     <button
                         type="button"
                         onClick={() => setShowGifInput(!showGifInput)}
-                        className={`p-2 rounded-lg transition-colors ${isLightTheme ? 'text-slate-400 hover:text-slate-900 hover:bg-slate-100' : 'text-white/50 hover:text-white hover:bg-white/10'}`}
-                        title="Add GIF"
+                        disabled={isMuted}
+                        className={`p-2 rounded-lg transition-colors ${isMuted ? 'opacity-30 cursor-not-allowed' : ''} ${isLightTheme ? 'text-slate-400 hover:text-slate-900 hover:bg-slate-100' : 'text-white/50 hover:text-white hover:bg-white/10'}`}
+                        title={isMuted ? "Sessize alındığınız için GIF gönderemezsiniz" : "Add GIF"}
                     >
                         <FileImage size={20} />
                     </button>
@@ -122,8 +129,9 @@ const ChatInput = ({ onSendMessage, onTyping, roomSlug, uiSettings }) => {
                             type="text"
                             value={message}
                             onChange={handleMessageChange}
-                            placeholder={`Message #${roomSlug || 'room'}...`}
-                            className={`w-full bg-transparent border-none focus:ring-0 py-2.5 max-h-32 focus:outline-none ${textColorClass} placeholder-chat-grey/70`}
+                            placeholder={isMuted ? "Sessize alındığınız için mesaj gönderemezsiniz..." : `Message #${roomSlug || 'room'}...`}
+                            disabled={isMuted}
+                            className={`w-full bg-transparent border-none focus:ring-0 py-2.5 max-h-32 focus:outline-none ${textColorClass} ${isMuted ? 'opacity-50 cursor-not-allowed' : ''} placeholder-chat-grey/70`}
                             style={{ fontFamily }}
                         />
                     </div>

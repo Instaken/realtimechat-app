@@ -1,48 +1,122 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatUZO Entegrasyon Testi</title>
+    <title>ChatUZO Widget Demo</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            color: #333;
+            padding: 20px;
         }
 
         .container {
-            text-align: center;
-            padding: 40px;
             background: white;
+            padding: 40px;
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
         }
 
         h1 {
-            color: #4f46e5;
+            color: #667eea;
             margin-bottom: 10px;
+            font-size: 2.5em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
         }
 
-        p {
-            line-height: 1.6;
+        h2 {
+            color: #555;
+            margin-top: 30px;
+            font-size: 1.5em;
+        }
+
+        p, li {
+            line-height: 1.8;
             color: #666;
         }
 
         .badge {
             background: #eef2ff;
             color: #4338ca;
-            padding: 5px 12px;
+            padding: 8px 16px;
             border-radius: 99px;
             font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        code {
+            color: #e74c3c;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+        }
+
+        .button {
+            background: #667eea;
+            color: white;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .info-box {
+            background: #e8f4fd;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 6px;
+        }
+
+        .info-box strong {
+            color: #2980b9;
+        }
+
+        ul {
+            padding-left: 25px;
+        }
+
+        li {
+            margin: 10px 0;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 3px;
             font-weight: 600;
         }
     </style>
@@ -51,20 +125,80 @@
 <body>
 
     <div class="container">
-        <span class="badge">Müşteri Web Sitesi Simülasyonu</span>
-        <h1>ChatUZO Test Sayfasına Hoş Geldiniz</h1>
-        <p>
-            Bu sayfa, ChatUZO'nun herhangi bir web sitesine ne kadar kolay entegre edilebileceğini göstermek için
-            oluşturulmuştur.
-            Sağ alt köşedeki butona basarak kendi uygulamanızı bir "widget" olarak görebilirsiniz.
-        </p>
-        <p><i>Not: Bu sayfa tamamen farklı bir yapıdadır ve React projenizden bağımsız çalışır.</i></p>
+        <span class="badge">🚀 Widget Entegrasyon Demo</span>
+        <h1>ChatUZO Widget Test</h1>
+        
+        <div class="info-box">
+            <strong>📌 Hızlı Başlangıç:</strong> Bu sayfa ChatUZO'nun herhangi bir web sitesine nasıl entegre edilebileceğini gösterir. 
+            Kendi room'unuzun <code>API KEY</code>'ini kullanarak sağ alttaki widget'ı test edebilirsiniz.
+        </div>
+
+        <h2>📦 Kurulum</h2>
+        <p>HTML dosyanızın <code>&lt;/body&gt;</code> etiketinden önce bu kodu ekleyin:</p>
+        
+        <div class="code-block">
+<code>&lt;script 
+    src="http://localhost:5173/widget-uzo.js" 
+    data-api-key="<span class="highlight">YOUR_API_KEY</span>"
+    data-position="bottom-right"
+    data-theme="auto"
+&gt;&lt;/script&gt;</code>
+        </div>
+
+        <h2>⚙️ Ayarlar</h2>
+        <ul>
+            <li><code>data-api-key</code>: Room API key (zorunlu)</li>
+            <li><code>data-position</code>: bottom-right | bottom-left | top-right | top-left (varsayılan: bottom-right)</li>
+            <li><code>data-theme</code>: auto | light | dark (varsayılan: auto)</li>
+        </ul>
+
+        <h2>🎮 JavaScript API</h2>
+        <p>Widget'ı programatik olarak kontrol edin:</p>
+        
+        <div class="code-block">
+<code>// Widget'ı aç
+window.ChatUZO.open();
+
+// Widget'ı kapat
+window.ChatUZO.close();
+
+// Toggle (aç/kapat)
+window.ChatUZO.toggle();
+
+// Durum kontrolü
+const isOpen = window.ChatUZO.isOpen();</code>
+        </div>
+
+        <h2>🧪 Test Kontrolleri</h2>
+        <div style="text-align: center; margin: 30px 0;">
+            <button class="button" onclick="window.ChatUZO && window.ChatUZO.open()">💬 Chat Aç</button>
+            <button class="button" onclick="window.ChatUZO && window.ChatUZO.close()">❌ Chat Kapat</button>
+            <button class="button" onclick="window.ChatUZO && window.ChatUZO.toggle()">🔄 Toggle</button>
+        </div>
+
+        <h2>✨ Özellikler</h2>
+        <ul>
+            <li>✅ Smooth açılma/kapanma animasyonları</li>
+            <li>✅ 4 farklı köşe pozisyonu</li>
+            <li>✅ Otomatik tema desteği (sistem tercihlerine göre)</li>
+            <li>✅ Mobil uyumlu responsive tasarım</li>
+            <li>✅ JavaScript API ile tam kontrol</li>
+            <li>✅ Yeni mesaj bildirimleri</li>
+            <li>✅ PostMessage API ile iletişim</li>
+        </ul>
+
+        <div class="info-box">
+            <strong>💡 İpucu:</strong> Widget mobil cihazlarda tam ekran moduna geçer ve kapalıyken yeni mesajlar için bildirim rozeti gösterir.
+        </div>
     </div>
 
-    <!-- CHATUZO ENTEGRASYON KODU -->
-    <!-- r1 id'li odayı bağladık -->
-    <script src="http://localhost:5173/widget-uzo.js" data-room-id="r1">
-    </script>
+    <!-- ChatUZO Widget Entegrasyonu -->
+    <script 
+        src="http://localhost:5173/widget-uzo.js" 
+        data-api-key="cmjxqozu10000ncvtplzlqdxg"
+        data-position="bottom-right"
+        data-theme="auto"
+    ></script>
 
 </body>
 

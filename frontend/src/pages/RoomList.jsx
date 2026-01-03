@@ -3,6 +3,7 @@ import { Plus, Search, Globe, User } from 'lucide-react';
 import { roomService } from '../services/api';
 import RoomCard from '../components/room/RoomCard';
 import CreateRoomModal from '../components/room/CreateRoomModal';
+import EditRoomModal from '../components/room/EditRoomModal';
 
 /**
  * Room List Page
@@ -18,6 +19,7 @@ const RoomList = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingRoom, setEditingRoom] = useState(null);
+    const [showEditModal, setShowEditModal] = useState(false);
 
     // Load user and rooms on mount
     useEffect(() => {
@@ -113,12 +115,17 @@ const RoomList = () => {
     // Handle edit button click
     const handleEditRoom = (room) => {
         setEditingRoom(room);
-        setIsModalOpen(true);
+        setShowEditModal(true);
     };
 
     // Close modal and reset editing state
     const handleCloseModal = () => {
         setIsModalOpen(false);
+        setEditingRoom(null);
+    };
+
+    const handleCloseEditModal = () => {
+        setShowEditModal(false);
         setEditingRoom(null);
     };
 
@@ -197,6 +204,18 @@ const RoomList = () => {
                 onCreateRoom={handleSaveRoom}
                 editingRoom={editingRoom}
             />
+
+            {/* Edit Room Modal */}
+            {showEditModal && editingRoom && (
+                <EditRoomModal
+                    room={editingRoom}
+                    onClose={handleCloseEditModal}
+                    onUpdate={async (updatedRoom) => {
+                        await fetchRooms();
+                        handleCloseEditModal();
+                    }}
+                />
+            )}
         </div>
     );
 };
@@ -257,9 +276,7 @@ const RoomGrid = ({ rooms, currentUserId, onDelete, onEdit, isPublicTab }) => (
                 currentUserId={currentUserId}
                 onDelete={onDelete}
                 onEdit={onEdit}
-            // If it's the public tab and I'm the owner, I can still edit/delete
-            // But typically public view might restrict this or just show "Join"
-            // RoomCard handles logic based on ownerId check
+                forceOwner={!isPublicTab} // If not public tab (i.e., "My Rooms"), force owner status
             />
         ))}
 

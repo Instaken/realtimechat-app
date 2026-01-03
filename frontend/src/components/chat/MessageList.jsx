@@ -17,8 +17,8 @@ const MessageList = ({ messages, currentUserId, uiSettings }) => {
     return (
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
             {messages.map((msg, idx) => {
-                const isCurrentUser = String(msg.user_id) === String(currentUserId);
-                const isContinuous = idx > 0 && String(messages[idx - 1].user_id) === String(msg.user_id);
+                const isCurrentUser = String(msg.userId) === String(currentUserId);
+                const isContinuous = idx > 0 && String(messages[idx - 1].userId) === String(msg.userId);
                 const showAvatar = !isContinuous;
 
                 return (

@@ -20,6 +20,7 @@ const ChatRoom = () => {
     const [room, setRoom] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showSidebar, setShowSidebar] = useState(true);
+    const [participants, setParticipants] = useState([]);
 
     // Initial Load User
     useEffect(() => {
@@ -58,6 +59,26 @@ const ChatRoom = () => {
                 } catch (err) {
                     console.error("Failed to load messages", err);
                 }
+
+                // Fetch participants
+                try {
+                    const participantsData = await roomService.getRoomParticipants(roomData.id);
+                    console.log('🎭 Participants loaded:', participantsData);
+                    setParticipants(participantsData.participants || []);
+
+                    // Check if current user is banned
+                    const currentUserParticipant = participantsData.participants?.find(
+                        p => String(p.user.id) === String(currentUser.id)
+                    );
+
+                    if (currentUserParticipant?.status === 'BANNED') {
+                        alert('Bu odaya banlandığınız için erişemezsiniz. Owner tarafından banınız açılana kadar giriş yapamaz.');
+                        navigate('/app');
+                        return;
+                    }
+                } catch (err) {
+                    console.error("Failed to load participants", err);
+                }
             } catch (error) {
                 console.error("Error loading chat", error);
             } finally {
@@ -79,7 +100,7 @@ const ChatRoom = () => {
         typingUsers,
         sendMessage,
         handleTyping
-    } = useChatSocket(roomId, room);
+    } = useChatSocket(roomId, room, participants);
 
     // Sync initial DB messages with Hook state when loaded
     useEffect(() => {
@@ -142,7 +163,10 @@ const ChatRoom = () => {
                     room={room}
                     uiSettings={uiSettings}
                     showSidebar={showSidebar}
-                    onToggleSidebar={() => setShowSidebar(!showSidebar)}
+                    onToggleSidebar={() => {
+                        console.log('🔄 Toggle sidebar clicked, current:', showSidebar, 'new:', !showSidebar);
+                        setShowSidebar(!showSidebar);
+                    }}
                     isLightTheme={isLightTheme}
                 />
 
@@ -154,12 +178,13 @@ const ChatRoom = () => {
 
                 {/* Typing Indicator */}
                 <div className="px-6 h-6">
-                    {typingUsers.length > 0 && (
-                        <div className={`flex items-center gap-2 text-[10px] ${subTextColorClass} animate-pulse font-bold uppercase tracking-widest`}>
+                    {/* Show if typing users exist AND (config is true OR config is undefined - default to showing) */}
+                    {typingUsers.length > 0 && (room?.logicConfig?.showTypingIndicator !== false) && (
+                        <div className={`flex items-center gap-2 text-sm italic ${isLightTheme ? 'text-slate-500' : 'text-chat-light/50'}`}>
                             <div className="flex gap-1">
-                                <span className={`w-1 h-1 ${isLightTheme ? 'bg-slate-400' : 'bg-chat-light'} rounded-full`}></span>
-                                <span className={`w-1 h-1 ${isLightTheme ? 'bg-slate-400' : 'bg-chat-light'} rounded-full`}></span>
-                                <span className={`w-1 h-1 ${isLightTheme ? 'bg-slate-400' : 'bg-chat-light'} rounded-full`}></span>
+                                <span className={`w-1 h-1 ${isLightTheme ? 'bg-slate-400' : 'bg-chat-light'} rounded-full animate-bounce`}></span>
+                                <span className={`w-1 h-1 ${isLightTheme ? 'bg-slate-400' : 'bg-chat-light'} rounded-full animate-bounce [animation-delay:0.2s]`}></span>
+                                <span className={`w-1 h-1 ${isLightTheme ? 'bg-slate-400' : 'bg-chat-light'} rounded-full animate-bounce [animation-delay:0.4s]`}></span>
                             </div>
                             <span>
                                 {typingUsers.join(', ')} {typingUsers.length > 1 ? 'are' : 'is'} typing...
@@ -173,15 +198,39 @@ const ChatRoom = () => {
                     onTyping={handleTyping}
                     roomSlug={room.slug}
                     uiSettings={uiSettings}
+                    currentUser={currentUser}
+                    participants={participants}
                 />
             </div>
 
+            {/* Sidebar - Mobile: full screen, Desktop: side panel */}
             {showSidebar && (
-                <ChatSidebar
-                    room={room}
-                    currentUser={currentUser}
-                    onlineUsers={onlineUsers}
-                />
+                <>
+                    {/* Mobile overlay backdrop */}
+                    <div 
+                        className="md:hidden fixed inset-0 bg-black/50 z-40"
+                        onClick={() => setShowSidebar(false)}
+                    />
+                    
+                    {/* Sidebar panel - full screen on mobile */}
+                    <div className={`
+                        md:relative
+                        fixed md:static
+                        inset-0 md:inset-auto
+                        md:right-0 md:top-0
+                        h-full
+                        w-full md:w-auto
+                        z-50 md:z-auto
+                    `}>
+                        <ChatSidebar
+                            room={room}
+                            currentUser={currentUser}
+                            onlineUsers={onlineUsers}
+                            participants={participants}
+                            onClose={() => setShowSidebar(false)}
+                        />
+                    </div>
+                </>
             )}
         </div>
     );
