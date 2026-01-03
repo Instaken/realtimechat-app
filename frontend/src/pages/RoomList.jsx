@@ -96,7 +96,7 @@ const RoomList = () => {
             }
 
             alert(errorMsg);
-            throw error; // Rethrow so modal knows it failed
+            throw error   ; // Rethrow so modal knows it failed
         }
     };
 
