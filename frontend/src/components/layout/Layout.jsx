@@ -38,7 +38,7 @@ const Layout = () => {
                         <div className="p-2 bg-gray-100 dark:bg-chat-grey/20 rounded-lg">
                             <MessageSquare size={24} className="text-gray-900 dark:text-white" />
                         </div>
-                        <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">ChatZUO</h1>
+                        <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">ChatUZO</h1>
                     </Link>
                 </div>
 
